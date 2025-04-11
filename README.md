@@ -42,50 +42,20 @@ To receive actual donations, you **MUST**:
 - **Copy-to-Clipboard** - One-click copying of wallet addresses
 - **Network Selection** - USDT with support for multiple blockchains
 
-## 🚀 Installation
+## 🚀 Quick Start (2-Minute Setup)
 
-### Step 1: Add Files to Your Extension
+### Just Three Simple Steps:
 
-Clone this repository or download the files and copy them to your extension project:
+1. **Clone this repo into your extension's root folder:**
+   ```
+   git clone https://github.com/Darkmintis/LocalDrop.git .
+   ```
 
-```bash
-git clone https://github.com/Darkmintis/LocalDrop.git
-```
+2. **Replace the QR codes in `assets/QR/` with your own payment QR codes**
+   
+3. **Update your wallet addresses in `config.js`**
 
-Essential files:
-- `donate.html` - The donation interface
-- `donate.css` - Styling for the donation page
-- `donate.js` - Functionality for the donation system
-- `config.js` - Configuration file (edit this to customize)
-- `assets/` - Directory containing all images and QR codes
-
-### Step 2: Update Your Manifest
-
-Add the donation files to your extension's `manifest.json`:
-
-```json
-"web_accessible_resources": [
-  {
-    "resources": ["donate.html", "donate.css", "donate.js", "config.js", "assets/*"],
-    "matches": ["<all_urls>"]
-  }
-]
-```
-
-### Step 3: Add a Donation Button
-
-Add a button to your extension that opens the donation page:
-
-```javascript
-document.getElementById('donate-button').addEventListener('click', function() {
-  chrome.windows.create({
-    url: chrome.runtime.getURL('donate.html'),
-    type: 'popup',
-    width: 400,
-    height: 600
-  });
-});
-```
+That's it! LocalDrop is now ready to use in your extension.
 
 ## ⚙️ Configuration
 
@@ -93,120 +63,25 @@ LocalDrop is designed to be easily customizable through the `config.js` file. Th
 
 ### Basic Configuration
 
-```javascript
-const LOCAL_DROP_CONFIG = {
-  // Extension Information
-  extension: {
-    name: "Your Extension Name",
-    logo: "path/to/your/logo.png",
-    theme: {
-      primaryColor: "#4285F4",
-      secondaryColor: "#FBBC05"
-    }
-  }
-};
-```
+Configure your extension information including name, logo path, and theme colors in the config.js file.
 
 ### Payment Method Configuration
 
-```javascript
-donationMethods: [
-  {
-    id: "binance",
-    name: "Binance Pay",
-    logo: "assets/binance.png",
-    qrCode: "assets/QR/BinancePay_qr.png",
-    address: "YOUR_BINANCE_PAY_ID",
-    addressLabel: "Binance Pay ID:",
-    referral: {
-      text: "Don't have Binance?",
-      linkText: "Create Binance Account",
-      url: "YOUR_REFERRAL_LINK",
-      icon: "assets/binance-sm.png"
-    }
-  },
-  // Additional payment methods...
-]
-```
+Set up your donation methods with properties like ID, name, logo path, QR code path, address, and referral information.
 
 ### UI Settings
 
-```javascript
-ui: {
-  initialTab: "binance",
-  footerText: "Thank you for your support!",
-  backButtonText: "Back to Extension"
-}
-```
+Customize UI elements like the initial tab to display, footer text, and back button text.
 
 ## 📝 Integration Examples
 
 ### Example 1: Popup Window
 
-Open the donation system in a new popup window:
-
-```javascript
-// In your extension's JavaScript
-function openDonationPopup() {
-  chrome.windows.create({
-    url: chrome.runtime.getURL('donate.html'),
-    type: 'popup',
-    width: 400,
-    height: 600
-  });
-}
-
-// Add this to your button's click handler
-document.getElementById('support-button').addEventListener('click', openDonationPopup);
-```
+Open the donation system in a new popup window using the chrome.windows.create API and specifying the donate.html file as the URL.
 
 ### Example 2: Embedded Iframe
 
-Embed the donation system directly within your extension's interface:
-
-```html
-<!-- In your popup.html -->
-<div id="content">
-  <!-- Your extension's main content -->
-</div>
-
-<div id="donation-container" style="display: none; width: 100%; height: 500px;"></div>
-
-<button id="donate-button">Support Us</button>
-<button id="back-button" style="display: none;">Back</button>
-
-<script src="popup.js"></script>
-```
-
-```javascript
-// In popup.js
-document.getElementById('donate-button').addEventListener('click', function() {
-  // Toggle visibility
-  document.getElementById('content').style.display = 'none';
-  document.getElementById('donation-container').style.display = 'block';
-  document.getElementById('donate-button').style.display = 'none';
-  document.getElementById('back-button').style.display = 'block';
-  
-  // Create and add iframe
-  const iframe = document.createElement('iframe');
-  iframe.src = chrome.runtime.getURL('donate.html');
-  iframe.style.border = 'none';
-  iframe.style.width = '100%';
-  iframe.style.height = '100%';
-  
-  const container = document.getElementById('donation-container');
-  container.innerHTML = '';
-  container.appendChild(iframe);
-});
-
-document.getElementById('back-button').addEventListener('click', function() {
-  // Return to main content
-  document.getElementById('content').style.display = 'block';
-  document.getElementById('donation-container').style.display = 'none';
-  document.getElementById('donate-button').style.display = 'block';
-  document.getElementById('back-button').style.display = 'none';
-});
-```
+Embed the donation system directly within your extension's interface by creating a container for an iframe that loads the donate.html file and toggling visibility between your main content and the donation system.
 
 ## 🧩 Customizing QR Codes
 
@@ -218,13 +93,6 @@ Replace the default QR codes with your own:
    - `RedotPay_qr.png` - For Redotpay
    - `USDT bnb.png`, `USDT tron.png`, etc. - For various USDT networks
 
-## 📱 Browser Compatibility
-
-- Google Chrome 88+
-- Microsoft Edge 88+
-- Mozilla Firefox 86+ (requires Manifest V3 support)
-- Opera 74+
-- Brave 1.20+
 
 ## 🚧 Roadmap
 
@@ -249,9 +117,9 @@ Replace the default QR codes with your own:
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
 5. Open a Pull Request
 
 ## 📄 License
