@@ -18,9 +18,6 @@
 
 LocalDrop is a professional donation system designed specifically for browser extensions. It enables users to contribute directly through your extension's interface, without being redirected to external pages - creating a seamless donation experience that maintains your extension's context and user flow.
 
-<div align="center">
-  <img src="assets/QR/BinancePay_qr.png" alt="LocalDrop Screenshot" width="250" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-</div>
 
 ## ⚠️ Important Notice
 
