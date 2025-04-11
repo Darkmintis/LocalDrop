@@ -583,6 +583,7 @@ header p {
   margin-bottom: 0;
 }
 
+/* Enhanced address container styles */
 .address-container:hover {
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
@@ -1108,6 +1109,39 @@ footer {
 }
 
 .heart-btn:active {
+  transform: scale(0.95);
+}
+
+/* GitHub button styling */
+.github-btn {
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  margin: 0;
+  cursor: pointer !important;
+  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  position: relative;
+  z-index: 10;
+  outline: none;
+  transition: transform 0.3s ease, filter 0.3s ease, background-color 0.3s ease;
+  color: var(--light-text);
+}
+
+.github-btn svg {
+  transition: transform 0.3s ease;
+}
+
+.github-btn:hover, .github-btn:focus {
+  transform: scale(1.2);
+  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--primary-color);
+}
+
+.github-btn:active {
   transform: scale(0.95);
 }
 
@@ -1980,6 +2014,10 @@ footer {
 /* Ensure dropdown is properly positioned */
 .usdt-header-wrapper .custom-select-options {
   min-width: 160px;
+  right: 0;
+  left: auto;
+  z-index: 100; /* Higher z-index to ensure it appears above QR code */
+  position: absolute;
 }
 
 /* Remove margin from network selector in header */
@@ -2063,9 +2101,6 @@ footer {
   left: auto;
   z-index: 100; /* Higher z-index to ensure it appears above QR code */
   position: absolute;
-}
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
 }
 
 .custom-select-styled.active {
