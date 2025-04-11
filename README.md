@@ -70,15 +70,6 @@ Set up your donation methods with properties like ID, name, logo path, QR code p
 
 Customize UI elements like the initial tab to display, footer text, and back button text.
 
-## 📝 Integration Examples
-
-### Example 1: Popup Window
-
-Open the donation system in a new popup window using the chrome.windows.create API and specifying the donate.html file as the URL.
-
-### Example 2: Embedded Iframe
-
-Embed the donation system directly within your extension's interface by creating a container for an iframe that loads the donate.html file and toggling visibility between your main content and the donation system.
 
 ## 🧩 Customizing QR Codes
 
@@ -99,15 +90,7 @@ Replace the default QR codes with your own:
 - Additional payment methods
 - Analytics integration
 
-## 🔧 Troubleshooting
 
-**Issue:** QR codes not displaying correctly
-- Make sure your QR code images are in the correct format and located in the `assets/QR/` directory
-- Verify the image paths in `config.js` are correct
-
-**Issue:** Buttons not working
-- Check your browser console for any JavaScript errors
-- Verify that event listeners are properly attached to your buttons
 
 ## 👥 Contributing
 
