@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support LocalDrop</title>
+  <link rel="stylesheet" href="donate.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="popup-mode">
+  <div class="container">
+    <header>
+      <div class="logo">
+        <img id="extension-logo" src="assets/logo.png" alt="LocalDrop Logo">
+        <h1 id="extension-name">LocalDrop</h1>
+      </div>
+      <p id="extension-description">Support the development with a donation</p>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="binance">
+        <img src="assets/binance.png" alt="Binance" class="tab-icon">
+        <span>Binance Pay</span>
+      </button>
+      <button class="tab-btn" data-tab="redotpay">
+        <img src="assets/RedotPay.png" alt="RedotPay" class="tab-icon">
+        <span>Redotpay</span>
+      </button>
+      <button class="tab-btn" data-tab="usdt">
+        <img src="assets/usdt.png" alt="USDT" class="tab-icon">
+        <span>USDT</span>
+      </button>
+    </div>
+
+    <div class="donation-options">
+      <!-- Binance Pay Tab -->
+      <div class="option active" id="binance-tab">
+        <div class="option-content">
+          <div class="payment-header">
+            <h3>Donate with Binance Pay</h3>
+          </div>
+          
+          <div class="qr-section">
+            <div class="qr-container">
+              <div class="qr-border"></div>
+              <img src="assets/QR/BinancePay_qr.png" alt="Binance QR Code" class="qr-code">
+              <div class="qr-shine"></div>
+            </div>
+          </div>
+          
+          <div class="wallet-address">
+            <p>Binance Pay ID:</p>
+            <div class="address-container">
+              <code id="binanceId">732365122</code>
+              <button class="copy-btn" data-clipboard="binanceId">Copy</button>
+            </div>
+            <div class="create-account">
+              <a href="https://accounts.binance.com/register" target="_blank" class="create-account-link">
+                Create an Account
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Redotpay Tab -->
+      <div class="option" id="redotpay-tab">
+        <div class="option-content">
+          <div class="payment-header">
+            <h3>Donate with Redotpay</h3>
+          </div>
+          
+          <div class="qr-section">
+            <div class="qr-container">
+              <div class="qr-border"></div>
+              <img src="assets/QR/RedotPay_qr.png" alt="Redotpay QR Code" class="qr-code">
+              <div class="qr-shine"></div>
+            </div>
+          </div>
+          
+          <div class="wallet-address">
+            <p>Redotpay ID:</p>
+            <div class="address-container">
+              <code id="redotpayId">1012623527</code>
+              <button class="copy-btn" data-clipboard="redotpayId">Copy</button>
+            </div>
+            <div class="create-account">
+              <a href="https://url.hk/i/en/79143" target="_blank" class="create-account-link">
+                Create an Account
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- USDT Tab -->
+      <div class="option" id="usdt-tab">
+        <div class="option-content">
+          <div class="payment-header-container">
+            <div class="payment-header">
+              <h3>Donate with USDT</h3>
+            </div>
+            
+            <div class="network-tabs-compact">
+              <div class="custom-select-styled" id="custom-network-selector">
+                <img src="assets/network-icons/bsc.png" alt="BSC" class="network-icon" id="current-network-icon">
+                <span id="current-network-name" data-short="BEP20" data-full="Binance Smart Chain">BEP20</span>
+              </div>
+              <div class="custom-select-options" id="network-options">
+                <!-- Options will be populated by JavaScript -->
+              </div>
+              <!-- Keep the original select for fallback -->
+              <select id="network-selector" class="network-select" style="display: none;">
+                <option value="BEP20" data-short="BEP20" data-full="Binance Smart Chain">BEP20</option>
+                <option value="TRC20" data-short="TRC20" data-full="TRON">TRC20</option>
+                <option value="SOL" data-short="SOL" data-full="Solana">SOL</option>
+                <option value="POL" data-short="POL" data-full="Polygon">POL</option>
+                <option value="OP" data-short="OP" data-full="Optimism">OP</option>
+                <option value="ARB" data-short="ARB" data-full="Arbitrum">ARB</option>
+                <option value="AVAX" data-short="AVAX" data-full="Avalanche">AVAX</option>
+                <option value="CELO" data-short="CELO" data-full="Celo">CELO</option>
+                <option value="NEAR" data-short="NEAR" data-full="NEAR Protocol">NEAR</option>
+                <option value="APT" data-short="APT" data-full="Aptos">APT</option>
+                <option value="XTZ" data-short="XTZ" data-full="Tezos">XTZ</option>
+                <option value="TON" data-short="TON" data-full="The Open Network">TON</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="qr-section">
+            <div class="qr-container">
+              <div class="qr-border"></div>
+              <img id="network-qr" src="assets/QR/USDT bnb.png" alt="USDT QR Code" class="qr-code">
+              <div class="qr-shine"></div>
+            </div>
+          </div>
+          
+          <div class="wallet-address">
+            <p>USDT <span id="network-name-display" data-short="BEP20" data-full="Binance Smart Chain">BEP20</span> <img src="assets/network-icons/bep20.png" alt="BSC" class="network-icon" id="label-network-icon"> address:</p>
+            <div class="address-container">
+              <code id="network-address">0xc9A505E28D0ff4C627Bd64c62e885d7f4e94c6d5</code>
+              <button class="copy-btn" data-clipboard="network-address">Copy</button>
+            </div>
+            <div class="create-account" style="text-align: center; width: 100%;">
+              <a href="https://accounts.binance.com/register" target="_blank" class="create-account-link">
+                Create a crypto exchange account
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer-content">
+        <div class="footer-left">
+          <button id="back-btn" class="back-btn" aria-label="Go back">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5"></path>
+              <path d="M12 19l-7-7 7-7"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="footer-center">
+          <p class="thank-you">Thank you for your support!</p>
+        </div>
+        <div class="footer-right">
+          <button type="button" id="heart-btn" class="heart-btn" onclick="window.open('https://github.com/Minix-Lab', '_blank')">❤️</button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Load configuration BEFORE the donate.js script -->
+  <script src="config.js" defer></script>
+  <script src="donate.js"></script>
+</body>
+</html>
