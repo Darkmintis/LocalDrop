@@ -83,17 +83,36 @@ async function runAutoConfig() {
     // Look for manifest.json in parent directory
     let manifestPath = '';
     let manifest = null;
+    let isIntegratedInExtension = false;
     
     if (fs.existsSync(path.join(parentDir, 'manifest.json'))) {
-      manifestPath = path.join(parentDir, 'manifest.json');
-      manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      console.log(`${colors.green}✅ Found host extension: ${manifest.name}${colors.reset}`);
-    } else if (fs.existsSync(path.join(currentDir, 'manifest.json'))) {
+      try {
+        const parentManifestContent = fs.readFileSync(path.join(parentDir, 'manifest.json'), 'utf8');
+        const parentManifest = JSON.parse(parentManifestContent);
+        
+        // Check if this looks like a real browser extension manifest (should have version & manifest_version)
+        if (parentManifest.version && parentManifest.manifest_version) {
+          manifestPath = path.join(parentDir, 'manifest.json');
+          manifest = parentManifest;
+          isIntegratedInExtension = true;
+          console.log(`${colors.green}✅ Found host extension: ${manifest.name}${colors.reset}`);
+        }
+      } catch (err) {
+        // If we can't read or parse the parent manifest, continue with other options
+      }
+    } 
+    
+    // If no valid parent extension found, check local manifest
+    if (!isIntegratedInExtension && fs.existsSync(path.join(currentDir, 'manifest.json'))) {
       manifestPath = path.join(currentDir, 'manifest.json');
       manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      console.log(`${colors.yellow}⚠️ Using local manifest.json${colors.reset}`);
-    } else {
-      console.log(`${colors.yellow}⚠️ No manifest.json found, using default values${colors.reset}`);
+      console.log(`${colors.yellow}⚠️ Using local manifest.json - LocalDrop not integrated in host extension${colors.reset}`);
+    } 
+    
+    // If no parent or local manifest, show clear warning
+    if (!manifest) {
+      console.log(`${colors.yellow}⚠️ No host extension detected - using default LocalDrop values${colors.reset}`);
+      console.log(`${colors.yellow}⚠️ This appears to be a standalone LocalDrop installation${colors.reset}`);
       manifest = {
         name: "LocalDrop",
         description: "A donation system for Chrome extensions",
@@ -104,10 +123,12 @@ async function runAutoConfig() {
     // Try to detect extension theme colors
     let primaryColor = "#2563eb";
     let secondaryColor = "#f59e0b";
+    let foundColors = false;
     
-    // Check if there's a CSS file with theme colors in parent
-    const cssFiles = [];
-    if (fs.existsSync(parentDir)) {
+    // If we found a parent extension, search for its CSS files for theme colors
+    if (isIntegratedInExtension) {
+      // Check if there's a CSS file with theme colors in parent
+      const cssFiles = [];
       fs.readdirSync(parentDir).forEach(file => {
         if (file.endsWith('.css')) {
           cssFiles.push(path.join(parentDir, file));
@@ -126,31 +147,30 @@ async function runAutoConfig() {
           });
         }
       });
-    }
-    
-    // Extract colors from CSS files
-    let foundColors = false;
-    for (const cssFile of cssFiles) {
-      try {
-        const cssContent = fs.readFileSync(cssFile, 'utf8');
-        
-        // Look for primary color
-        const primaryMatch = cssContent.match(/(--primary(?:-color)?|--theme-color|--main-color):\s*(#[0-9a-fA-F]{3,8}|rgb\([^)]+\)|rgba\([^)]+\))/i);
-        if (primaryMatch && primaryMatch[2]) {
-          primaryColor = primaryMatch[2];
-          foundColors = true;
+      
+      // Extract colors from CSS files
+      for (const cssFile of cssFiles) {
+        try {
+          const cssContent = fs.readFileSync(cssFile, 'utf8');
+          
+          // Look for primary color
+          const primaryMatch = cssContent.match(/(--primary(?:-color)?|--theme-color|--main-color):\s*(#[0-9a-fA-F]{3,8}|rgb\([^)]+\)|rgba\([^)]+\))/i);
+          if (primaryMatch && primaryMatch[2]) {
+            primaryColor = primaryMatch[2];
+            foundColors = true;
+          }
+          
+          // Look for secondary color
+          const secondaryMatch = cssContent.match(/(--secondary(?:-color)?|--accent-color|--highlight-color):\s*(#[0-9a-fA-F]{3,8}|rgb\([^)]+\)|rgba\([^)]+\))/i);
+          if (secondaryMatch && secondaryMatch[2]) {
+            secondaryColor = secondaryMatch[2];
+            foundColors = true;
+          }
+          
+          if (foundColors) break;
+        } catch (err) {
+          // Skip file if can't read
         }
-        
-        // Look for secondary color
-        const secondaryMatch = cssContent.match(/(--secondary(?:-color)?|--accent-color|--highlight-color):\s*(#[0-9a-fA-F]{3,8}|rgb\([^)]+\)|rgba\([^)]+\))/i);
-        if (secondaryMatch && secondaryMatch[2]) {
-          secondaryColor = secondaryMatch[2];
-          foundColors = true;
-        }
-        
-        if (foundColors) break;
-      } catch (err) {
-        // Skip file if can't read
       }
     }
     
@@ -251,19 +271,44 @@ async function runAutoConfig() {
     // Check if config.js already exists and try to load it
     let existingConfig = null;
     const configPath = path.join(currentDir, 'config.js');
+    let preservingUserChanges = false;
+    
+    // Check if we're already in default state
+    let isDefaultConfig = false;
     
     if (fs.existsSync(configPath)) {
       try {
         const configContent = fs.readFileSync(configPath, 'utf8');
+        
+        // Check if this looks like a default config file
+        if (configContent.includes('This file contains the default configuration settings for LocalDrop') || 
+            configContent.includes('DEFAULT configuration reset by')) {
+          isDefaultConfig = true;
+          console.log(`${colors.blue}ℹ️ Current config.js is already in default state${colors.reset}`);
+        }
+        
         const configMatch = configContent.match(/const LOCAL_DROP_CONFIG = ({[\s\S]*?});/);
         
         if (configMatch && configMatch[1]) {
           existingConfig = JSON.parse(configMatch[1]);
-          console.log(`${colors.green}✅ Found existing config.js - user customizations will be preserved${colors.reset}`);
+          
+          // Only preserve user customizations if not in default state
+          if (!isDefaultConfig) {
+            preservingUserChanges = true;
+            console.log(`${colors.green}✅ Found existing config.js with user customizations - these will be preserved${colors.reset}`);
+          }
         }
       } catch (err) {
         console.log(`${colors.yellow}⚠️ Couldn't parse existing config.js, creating a new one${colors.reset}`);
       }
+    }
+    
+    // If we're not integrated in a host extension and config.js is already in default state,
+    // we can exit early since no changes are needed
+    if (!isIntegratedInExtension && isDefaultConfig) {
+      console.log(`${colors.green}✅ LocalDrop is already in default state and not integrated in a host extension${colors.reset}`);
+      console.log(`${colors.green}✅ No changes needed to config.js${colors.reset}`);
+      return;
     }
     
     // Generate new configuration
@@ -295,8 +340,8 @@ async function runAutoConfig() {
       }
     };
     
-    // If we have an existing config, preserve user modifications
-    if (existingConfig) {
+    // If we have an existing config to preserve, merge user modifications
+    if (preservingUserChanges && existingConfig) {
       // Preserve extension info modifications
       if (existingConfig.extension) {
         if (existingConfig.extension.name !== "LocalDrop") {
@@ -395,11 +440,16 @@ async function runAutoConfig() {
       }
     }
     
+    // Message for the header based on whether we found a host extension
+    const headerMessage = isIntegratedInExtension
+      ? "This file was generated by auto command based on host extension details."
+      : "This file was generated by auto command in standalone mode (no host extension)."
+    
     // Save the configuration to config.js
     const configContent = `/**
  * LocalDrop Configuration File
  * 
- * This file was generated by localdrop-cli.js auto command.
+ * ${headerMessage}
  * You can edit this file to customize the donation interface.
  * 
  * IMPORTANT: Replace placeholders (like YOUR_BINANCE_PAY_ID) with your actual
@@ -413,13 +463,14 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = LOCAL_DROP_CONFIG;
 }`;
 
-    // Use explicit UTF-8 encoding when writing the file
-    safeWriteFile(configPath, configContent);
-    console.log(`${colors.green}✅ Configuration saved to config.js${colors.reset}`);
-    console.log(`${colors.blue}${colors.bright}Next steps:${colors.reset}`);
-    console.log(`${colors.dim}1. Replace placeholder addresses in config.js with your own payment details${colors.reset}`);
-    console.log(`${colors.dim}2. Update QR codes in assets/QR/ folder if needed${colors.reset}`);
-    console.log(`${colors.dim}3. Test the interface by opening donate.html${colors.reset}`);
+    // Use safeWriteFile to write with proper encoding
+    if (safeWriteFile(configPath, configContent)) {
+      console.log(`${colors.green}✅ Configuration saved to config.js${colors.reset}`);
+      console.log(`${colors.blue}${colors.bright}Next steps:${colors.reset}`);
+      console.log(`${colors.dim}1. Replace placeholder addresses in config.js with your own payment details${colors.reset}`);
+      console.log(`${colors.dim}2. Update QR codes in assets/QR/ folder if needed${colors.reset}`);
+      console.log(`${colors.dim}3. Test the interface by opening donate.html${colors.reset}`);
+    }
     
   } catch (error) {
     console.error(`${colors.red}❌ Error during auto-configuration:${colors.reset}`, error);
