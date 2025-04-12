@@ -45,6 +45,32 @@ ${colors.yellow}LocalDrop CLI Tool${colors.reset} - ${colors.dim}Donation system
 `);
 }
 
+// Helper function to safely write files with proper encoding
+function safeWriteFile(filePath, content) {
+  try {
+    // Always use UTF-8 without BOM to avoid encoding issues
+    fs.writeFileSync(filePath, content, { encoding: 'utf8' });
+    return true;
+  } catch (error) {
+    console.error(`${colors.red}❌ Error writing to ${path.basename(filePath)}:${colors.reset}`, error);
+    
+    // Try to recover if possible
+    try {
+      // Create a backup with timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const backupPath = `${filePath}.${timestamp}.bak`;
+      
+      console.log(`${colors.yellow}⚠️ Attempting to create backup at ${backupPath}${colors.reset}`);
+      fs.writeFileSync(backupPath, content, { encoding: 'utf8' });
+      console.log(`${colors.green}✅ Backup created successfully${colors.reset}`);
+    } catch (backupError) {
+      console.error(`${colors.red}❌ Could not create backup:${colors.reset}`, backupError);
+    }
+    
+    return false;
+  }
+}
+
 // Execute auto-configuration
 async function runAutoConfig() {
   console.log(`${colors.blue}🔍 Looking for host extension details...${colors.reset}`);
@@ -387,7 +413,8 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = LOCAL_DROP_CONFIG;
 }`;
 
-    fs.writeFileSync(configPath, configContent, 'utf8');
+    // Use explicit UTF-8 encoding when writing the file
+    safeWriteFile(configPath, configContent);
     console.log(`${colors.green}✅ Configuration saved to config.js${colors.reset}`);
     console.log(`${colors.blue}${colors.bright}Next steps:${colors.reset}`);
     console.log(`${colors.dim}1. Replace placeholder addresses in config.js with your own payment details${colors.reset}`);
@@ -495,7 +522,7 @@ function resetToDefault() {
       }
     };
     
-    // Write default config
+    // Write default config with explicit UTF-8 encoding
     const configContent = `/**
  * LocalDrop Default Configuration File
  * 
@@ -513,7 +540,8 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = LOCAL_DROP_CONFIG;
 }`;
 
-    fs.writeFileSync(configPath, configContent, 'utf8');
+    // Use explicit UTF-8 encoding when writing the file
+    safeWriteFile(configPath, configContent);
     console.log(`${colors.green}✅ Reset to default configuration${colors.reset}`);
     
   } catch (error) {
