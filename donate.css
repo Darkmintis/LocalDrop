@@ -3,6 +3,7 @@
   --primary-color: #2563eb;
   --primary-hover: #1d4ed8;
   --primary-light: #93c5fd;
+  --primary-very-light: #ebf4ff; /* Adding a new very light blue color */
   --secondary-color: #f59e0b;
   --secondary-hover: #d97706;
   --secondary-light: #fcd34d;
@@ -164,7 +165,7 @@ header {
 
 .tab-btn.active {
   color: var(--primary-color);
-  background-color: var(--primary-light);
+  background-color: var(--primary-very-light); /* Changed from primary-light to primary-very-light */
 }
 
 .tab-btn.active .tab-icon {
@@ -203,7 +204,13 @@ header {
 .donation-options {
   flex: 1;
   overflow-y: auto;
+  scrollbar-width: none; /* Hide Firefox scrollbar */
+  -ms-overflow-style: none; /* Hide IE/Edge scrollbar */
   background-color: var(--white);
+}
+
+.donation-options::-webkit-scrollbar {
+  display: none;
 }
 
 .option {
@@ -225,18 +232,20 @@ header {
 /* Payment Method Header */
 .payment-header-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  justify-content: center; /* Changed from space-between to center for better alignment */
   margin-bottom: 12px;
   width: 100%;
+  gap: 10px; /* Added a specific gap instead of using space-between */
 }
 
 .payment-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12px;
-  width: 100%;
+  margin-bottom: 0; /* Changed from 12px to 0 */
+  width: auto; /* Changed from 100% to auto */
 }
 
 .payment-header img {
@@ -267,6 +276,13 @@ header {
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
   overflow: hidden;
+}
+
+/* Add a smaller QR container specifically for the USDT section */
+#usdt-tab .qr-container {
+  width: 165px;
+  height: 165px;
+  padding: 6px;
 }
 
 .qr-border {
@@ -329,6 +345,7 @@ header {
   width: 16px;
   height: 16px;
   margin-left: 6px;
+  margin-right: 2px; /* Add 2px spacing between icon and address text */
 }
 
 .address-container {
@@ -431,7 +448,7 @@ header {
 }
 
 .network-btn:hover {
-  background-color: var(--primary-light);
+  background-color: var(--primary-very-light); /* Changed from primary-light to primary-very-light */
   border-color: var(--primary-light);
 }
 
@@ -444,8 +461,8 @@ header {
 /* Enhanced Compact Network Selector */
 .network-tabs-compact {
   position: relative;
-  width: 100%;
-  margin-bottom: 12px;
+  width: auto; /* Changed from 100% to auto */
+  margin-bottom: 0; /* Changed from 12px to 0 */
 }
 
 .custom-select-styled {
@@ -482,7 +499,7 @@ header {
   border-right: 2px solid var(--gray-500);
   border-bottom: 2px solid var(--gray-500);
   transform: rotate(45deg);
-  margin-left: auto;
+  margin-left: 10px; /* Increased from auto to add more space before arrow */
   transition: all 0.2s;
 }
 

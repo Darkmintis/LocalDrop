@@ -2,22 +2,22 @@
  * LocalDrop Auto Configuration (v1.0.0)
  * 
  * This script automatically generates the LocalDrop configuration by:
- * 1. Reading extension metadata from manifest.json
+ * 1. Reading extension metadata from the host extension's manifest.json
  * 2. Detecting QR codes and payment methods
  * 3. Extracting theme colors from CSS
  * 4. Setting optimal popup dimensions
  * 
- * Users only need to replace QR codes and payment addresses.
+ * Users only need to integrate this into their extension, replace QR codes and payment addresses.
  */
 
 (async function() {
   console.log('🔄 LocalDrop Auto Configuration starting...');
   
   try {
-    // Step 1: Read manifest.json to get extension metadata
+    // Step 1: Read the host extension's manifest.json to get extension metadata
     const manifest = await fetchManifest();
     if (!manifest) {
-      throw new Error('Failed to load manifest.json');
+      throw new Error('Failed to detect extension information');
     }
     
     // Step 2: Detect available payment methods by scanning QR folder
@@ -43,22 +43,45 @@
   }
 })();
 
-// Fetch and parse manifest.json
+// Fetch and parse host extension's manifest.json
 async function fetchManifest() {
   try {
-    const response = await fetch('./manifest.json');
-    if (!response.ok) {
-      throw new Error(`Failed to fetch manifest.json: ${response.status}`);
+    // First, try to fetch from the current directory (common case when integrated into extension)
+    try {
+      const response = await fetch('./manifest.json');
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (e) {
+      console.log('Looking for host extension manifest...');
     }
-    return await response.json();
-  } catch (error) {
-    console.error('Error loading manifest:', error);
-    // If fetch fails (during local development), try using a dummy manifest
+    
+    // If that fails, try to go up one directory level (in case LocalDrop is in a subfolder)
+    try {
+      const response = await fetch('../manifest.json');
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (e) {
+      console.log('Could not find manifest.json in parent directory');
+    }
+    
+    // If in a Chrome extension context, try to get manifest info from runtime
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getManifest) {
+      console.log('Using Chrome extension API to get manifest');
+      return chrome.runtime.getManifest();
+    }
+    
+    console.warn('Could not find host extension manifest.json, using default values');
+    // If all attempts fail, use a dummy manifest for development/testing
     return {
-      name: "LocalDrop",
+      name: "LocalDrop Host Extension",
       description: "A simple donation system for Chrome extensions",
       icons: { "128": "assets/logo.png" }
     };
+  } catch (error) {
+    console.error('Error loading manifest:', error);
+    return null;
   }
 }
 

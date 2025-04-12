@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const networkMappings = {
     // Icons for networks
     iconMapping: {
-      'BEP20': 'bsc',
+      'BEP20': 'bnb', // Changed from 'bsc' to 'bnb' to match existing file
       'TRC20': 'tron',
       'SOL': 'solana',
       'POL': 'polygon',
@@ -35,19 +35,19 @@ document.addEventListener('DOMContentLoaded', function() {
       'TON': 'ton'
     },
     
-    // Network display names
+    // Network display names - Changed to use short names
     nameMapping: {
-      'BEP20': 'BSC',
-      'TRC20': 'TRON',
-      'SOL': 'Solana',
-      'POL': 'Polygon',
-      'OP': 'Optimism',
-      'ARB': 'Arbitrum',
-      'AVAX': 'Avalanche',
-      'CELO': 'Celo',
+      'BEP20': 'BEP20',
+      'TRC20': 'TRC20',
+      'SOL': 'SOL',
+      'POL': 'POL',
+      'OP': 'OP',
+      'ARB': 'ARB',
+      'AVAX': 'AVAX',
+      'CELO': 'CELO',
       'NEAR': 'NEAR',
-      'APT': 'Aptos',
-      'XTZ': 'Tezos',
+      'APT': 'APT',
+      'XTZ': 'XTZ',
       'TON': 'TON'
     }
   };
@@ -438,13 +438,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (usdtConfig && usdtConfig.networks && usdtConfig.networks.length > 0) {
       networks = usdtConfig.networks.map(network => ({
         value: network.id,
-        displayName: network.displayName || network.name
+        displayName: network.name // Use short name instead of displayName
       }));
     } else {
       const options = selectElement.querySelectorAll('option');
       networks = Array.from(options).map(option => ({
         value: option.value,
-        displayName: option.textContent
+        displayName: option.getAttribute('data-short') || option.textContent
       }));
     }
     
@@ -483,13 +483,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (currentName) {
-      currentName.textContent = networkDisplayName;
+      currentName.textContent = networkDisplayName; // Using short name
     }
     
     // Update network name in heading
     const nameDisplay = document.getElementById('network-name-display');
     if (nameDisplay) {
       nameDisplay.textContent = networkDisplayName;
+      
+      // Access the parent paragraph and update its content
+      const parentP = nameDisplay.closest('p');
+      if (parentP) {
+        // Get the first text node (USDT text)
+        const firstTextNode = Array.from(parentP.childNodes).find(node => 
+          node.nodeType === Node.TEXT_NODE && node.textContent.trim() === "USDT");
+        
+        if (firstTextNode) {
+          // Replace with "USDT-" + the network name
+          firstTextNode.textContent = "USDT-";
+        }
+      }
     }
     
     // Update icon in label
