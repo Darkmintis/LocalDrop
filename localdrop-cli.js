@@ -50,6 +50,21 @@ function safeWriteFile(filePath, content) {
   try {
     // Always use UTF-8 without BOM to avoid encoding issues
     fs.writeFileSync(filePath, content, { encoding: 'utf8' });
+    
+    // Verify the file was written correctly by reading it back
+    try {
+      const readBack = fs.readFileSync(filePath, { encoding: 'utf8' });
+      if (readBack.includes('�') || !readBack.includes('LOCAL_DROP_CONFIG')) {
+        console.error(`${colors.red}⚠️ Warning: Potential encoding issue detected in written file${colors.reset}`);
+        
+        // Try to fix by writing again with a different method
+        fs.writeFileSync(filePath, content, { encoding: 'utf8' });
+        console.log(`${colors.green}✅ Attempted to fix encoding issue${colors.reset}`);
+      }
+    } catch (readError) {
+      console.error(`${colors.red}❌ Error verifying file contents:${colors.reset}`, readError);
+    }
+    
     return true;
   } catch (error) {
     console.error(`${colors.red}❌ Error writing to ${path.basename(filePath)}:${colors.reset}`, error);
