@@ -144,8 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Setup UI based on configuration
-  applyConfigToUI(config);
-  setupDonationUI(config);
+  setupDonationInterface(config);
   
   // HELPER FUNCTIONS
   
@@ -169,167 +168,328 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   }
   
-  // Apply configuration to UI elements
-  function applyConfigToUI(config) {
-    if (!config) return;
+  // Main function to setup the entire donation interface
+  function setupDonationInterface(config) {
+    // Apply extension info and theme
+    applyExtensionInfo(config.extension);
     
-    // Extension information
-    if (config.extension) {
-      // Logo
-      const logoElement = document.getElementById('extension-logo');
-      if (logoElement && config.extension.logo) {
-        logoElement.src = config.extension.logo;
-      }
-      
-      // Name
-      const nameElement = document.getElementById('extension-name');
-      if (nameElement && config.extension.name) {
-        nameElement.textContent = config.extension.name;
-        document.title = `Support ${config.extension.name}`;
-      }
-      
-      // Description
-      const descElement = document.getElementById('extension-description');
-      if (descElement && config.extension.description) {
-        descElement.textContent = config.extension.description;
-      }
-      
-      // Theme colors
-      if (config.extension.theme) {
-        const root = document.documentElement;
-        if (config.extension.theme.primaryColor) {
-          root.style.setProperty('--primary-color', config.extension.theme.primaryColor);
-          root.style.setProperty('--primary-hover', adjustColor(config.extension.theme.primaryColor, -20));
-          root.style.setProperty('--primary-light', adjustColor(config.extension.theme.primaryColor, 40, true));
-        }
-        
-        if (config.extension.theme.secondaryColor) {
-          root.style.setProperty('--secondary-color', config.extension.theme.secondaryColor);
-          root.style.setProperty('--secondary-hover', adjustColor(config.extension.theme.secondaryColor, -20));
-          root.style.setProperty('--secondary-light', adjustColor(config.extension.theme.secondaryColor, 40, true));
-        }
-        
-        // Header background
-        const header = document.querySelector('header');
-        if (header && config.extension.theme.primaryColor) {
-          header.style.background = `linear-gradient(135deg, ${config.extension.theme.primaryColor}, ${adjustColor(config.extension.theme.primaryColor, -20)})`;
-        }
-      }
+    // Clear and rebuild donation tabs
+    rebuildDonationTabs(config.donationMethods);
+    
+    // Apply UI settings
+    applyUISettings(config.ui);
+    
+    // Setup general UI functionality
+    setupUIFunctionality(config);
+  }
+  
+  // Apply extension information to UI
+  function applyExtensionInfo(extension) {
+    if (!extension) return;
+    
+    // Logo
+    const logoElement = document.getElementById('extension-logo');
+    if (logoElement && extension.logo) {
+      logoElement.src = extension.logo;
     }
     
-    // Donation methods
-    if (config.donationMethods && Array.isArray(config.donationMethods)) {
-      updateDonationTabs(config.donationMethods);
-      
-      config.donationMethods.forEach(method => {
-        switch (method.id) {
-          case 'binance':
-            updateBinancePayUI(method);
-            break;
-          case 'redotpay':
-            updateRedotpayUI(method);
-            break;
-          case 'usdt':
-            updateUSDTUI(method);
-            break;
-          default:
-            updateCustomDonationMethodUI(method);
-            break;
-        }
-      });
+    // Name
+    const nameElement = document.getElementById('extension-name');
+    if (nameElement && extension.name) {
+      nameElement.textContent = extension.name;
+      document.title = `Support ${extension.name}`;
     }
     
-    // UI settings
-    if (config.ui) {
-      // Initial tab
-      if (config.ui.initialTab) {
-        setActiveTab(config.ui.initialTab);
+    // Description
+    const descElement = document.getElementById('extension-description');
+    if (descElement && extension.description) {
+      descElement.textContent = extension.description;
+    }
+    
+    // Theme colors
+    if (extension.theme) {
+      const root = document.documentElement;
+      if (extension.theme.primaryColor) {
+        root.style.setProperty('--primary-color', extension.theme.primaryColor);
+        root.style.setProperty('--primary-hover', adjustColor(extension.theme.primaryColor, -20));
+        root.style.setProperty('--primary-light', adjustColor(extension.theme.primaryColor, 40, true));
+        root.style.setProperty('--primary-very-light', adjustColor(extension.theme.primaryColor, 90, true));
       }
       
-      // Footer text
-      if (config.ui.footerText) {
-        const thankYouElement = document.querySelector('.thank-you');
-        if (thankYouElement) {
-          thankYouElement.textContent = config.ui.footerText;
-        }
+      if (extension.theme.secondaryColor) {
+        root.style.setProperty('--secondary-color', extension.theme.secondaryColor);
+        root.style.setProperty('--secondary-hover', adjustColor(extension.theme.secondaryColor, -20));
+        root.style.setProperty('--secondary-light', adjustColor(extension.theme.secondaryColor, 40, true));
       }
       
-      // Back button text
-      if (config.ui.backButtonText !== undefined) {
-        const backBtn = document.getElementById('back-btn');
-        if (backBtn && config.ui.backButtonText.trim() !== '') {
-          backBtn.innerHTML = config.ui.backButtonText;
-          backBtn.classList.add('text-back-btn');
-        }
+      // Header background
+      const header = document.querySelector('header');
+      if (header && extension.theme.primaryColor) {
+        header.style.background = `linear-gradient(135deg, ${extension.theme.primaryColor}, ${adjustColor(extension.theme.primaryColor, -20)})`;
       }
     }
   }
   
-  // Set active tab
-  function setActiveTab(tabId) {
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const options = document.querySelectorAll('.option');
+  // Completely rebuild donation tabs based on config
+  function rebuildDonationTabs(donationMethods) {
+    if (!donationMethods || !Array.isArray(donationMethods)) {
+      donationMethods = [];
+    }
     
-    // Clear all active classes
-    tabButtons.forEach(btn => btn.classList.remove('active'));
-    options.forEach(opt => {
-      opt.classList.remove('active');
-      opt.style.display = 'none';
+    // Get tab container and content container
+    const tabsContainer = document.querySelector('.tabs');
+    const donationOptionsContainer = document.querySelector('.donation-options');
+    
+    if (!tabsContainer || !donationOptionsContainer) {
+      console.error('LocalDrop: Cannot find tab containers');
+      return;
+    }
+    
+    // Clear existing tabs and content
+    tabsContainer.innerHTML = '';
+    donationOptionsContainer.innerHTML = '';
+    
+    // If no donation methods, show a message
+    if (donationMethods.length === 0) {
+      const noMethodsMessage = document.createElement('div');
+      noMethodsMessage.className = 'no-methods-message';
+      noMethodsMessage.style.padding = '20px';
+      noMethodsMessage.style.textAlign = 'center';
+      noMethodsMessage.innerHTML = `
+        <p>No donation methods configured.</p>
+        <p>Please update the config.js file to add donation methods.</p>
+      `;
+      donationOptionsContainer.appendChild(noMethodsMessage);
+      return;
+    }
+    
+    // Create tabs and content for each donation method
+    donationMethods.forEach(method => {
+      // Create tab button
+      const tabButton = document.createElement('button');
+      tabButton.className = 'tab-btn';
+      tabButton.setAttribute('data-tab', method.id);
+      
+      tabButton.innerHTML = `
+        <img src="${method.logo || 'assets/logo.png'}" alt="${method.name}" class="tab-icon">
+        <span>${method.name}</span>
+      `;
+      tabsContainer.appendChild(tabButton);
+      
+      // Create content container
+      const contentContainer = document.createElement('div');
+      contentContainer.className = 'option';
+      contentContainer.id = `${method.id}-tab`;
+      
+      // Generate content based on method type
+      if (method.isMultiNetwork) {
+        contentContainer.innerHTML = createMultiNetworkContent(method);
+      } else {
+        contentContainer.innerHTML = createStandardContent(method);
+      }
+      
+      donationOptionsContainer.appendChild(contentContainer);
     });
     
-    // Set the specified tab as active
-    const activeTabBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
-    if (activeTabBtn) {
-      activeTabBtn.classList.add('active');
-      const tabContentId = tabId + '-tab';
-      const activeTab = document.getElementById(tabContentId);
-      if (activeTab) {
-        activeTab.classList.add('active');
-        activeTab.style.display = 'block';
+    // Handle responsive layout for many tabs
+    const totalTabs = tabsContainer.querySelectorAll('.tab-btn').length;
+    if (totalTabs > 3) {
+      tabsContainer.classList.add('many-tabs');
+      if (totalTabs > 5) {
+        tabsContainer.classList.add('tabs-grid');
       }
     }
   }
   
-  // Setup donation UI components
-  function setupDonationUI(config) {
-    setupTabNavigation();
+  // Create content for standard payment method
+  function createStandardContent(method) {
+    return `
+      <div class="option-content">
+        <div class="payment-header">
+          <h3>Donate with ${method.name}</h3>
+        </div>
+        
+        <div class="qr-section">
+          <div class="qr-container">
+            <div class="qr-border"></div>
+            <img src="${method.qrCode}" alt="${method.name} QR Code" class="qr-code">
+            <div class="qr-shine"></div>
+          </div>
+        </div>
+        
+        <div class="wallet-address">
+          <p>${method.addressLabel || `${method.name} Address:`}</p>
+          <div class="address-container">
+            <code id="${method.id}Id">${method.address}</code>
+            <button class="copy-btn" data-clipboard="${method.id}Id">Copy</button>
+          </div>
+          ${method.referral ? `
+          <div class="create-account">
+            <a href="${method.referral.url}" target="_blank" class="create-account-link">
+              ${method.referral.linkText || 'Create an Account'}
+            </a>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+  
+  // Create content for multi-network payment method (like USDT)
+  function createMultiNetworkContent(method) {
+    // Only include networks that are defined
+    const networks = method.networks && Array.isArray(method.networks) ? method.networks : [];
+    
+    // Create network options HTML
+    const networkOptions = networks.map(network => `
+      <option value="${network.id}" data-short="${network.name}" data-full="${network.displayName || network.name}">
+        ${network.displayName || network.name}
+      </option>
+    `).join('');
+
+    // Set default network data
+    const defaultNetwork = networks.length > 0 ? networks[0] : null;
+    const defaultNetworkId = defaultNetwork ? defaultNetwork.id : '';
+    const defaultNetworkName = defaultNetwork ? defaultNetwork.name : '';
+    const defaultNetworkDisplayName = defaultNetwork ? (defaultNetwork.displayName || defaultNetwork.name) : '';
+    const defaultNetworkIcon = defaultNetwork ? (networkMappings.iconMapping[defaultNetwork.id] || defaultNetwork.id.toLowerCase()) : '';
+    const defaultQrCode = defaultNetwork ? defaultNetwork.qrCode : '';
+    const defaultAddress = defaultNetwork ? defaultNetwork.address : '';
+
+    return `
+      <div class="option-content">
+        <div class="payment-header-container">
+          <div class="payment-header">
+            <h3>Donate with ${method.name}</h3>
+          </div>
+          
+          <div class="network-tabs-compact">
+            <div class="custom-select-styled" id="custom-network-selector">
+              <img src="assets/network-icons/${defaultNetworkIcon}.png" alt="${defaultNetworkName}" class="network-icon" id="current-network-icon">
+              <span id="current-network-name" data-short="${defaultNetworkName}" data-full="${defaultNetworkDisplayName}">${defaultNetworkName}</span>
+            </div>
+            <div class="custom-select-options" id="network-options">
+              <!-- Options will be populated by JavaScript -->
+            </div>
+            <!-- Keep the original select for fallback -->
+            <select id="network-selector" class="network-select" style="display: none;">
+              ${networkOptions}
+            </select>
+          </div>
+        </div>
+        
+        <div class="qr-section">
+          <div class="qr-container">
+            <div class="qr-border"></div>
+            <img id="network-qr" src="${defaultQrCode}" alt="${method.name} QR Code" class="qr-code">
+            <div class="qr-shine"></div>
+          </div>
+        </div>
+        
+        <div class="wallet-address">
+          <p>USDT-<span id="network-name-display" data-short="${defaultNetworkName}" data-full="${defaultNetworkDisplayName}">${defaultNetworkName}</span> <img src="assets/network-icons/${defaultNetworkIcon}.png" alt="${defaultNetworkName}" class="network-icon" id="label-network-icon"> address:</p>
+          <div class="address-container">
+            <code id="network-address">${defaultAddress}</code>
+            <button class="copy-btn" data-clipboard="network-address">Copy</button>
+          </div>
+          ${method.referral ? `
+          <div class="create-account" style="text-align: center; width: 100%;">
+            <a href="${method.referral.url}" target="_blank" class="create-account-link">
+              ${method.referral.linkText || 'Create a crypto exchange account'}
+            </a>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+  
+  // Apply UI settings
+  function applyUISettings(uiSettings) {
+    if (!uiSettings) return;
+    
+    // Footer text
+    const thankYouElement = document.querySelector('.thank-you');
+    if (thankYouElement && uiSettings.footerText) {
+      thankYouElement.textContent = uiSettings.footerText;
+    }
+    
+    // Back button text
+    const backBtn = document.getElementById('back-btn');
+    if (backBtn && uiSettings.backButtonText !== undefined) {
+      if (uiSettings.backButtonText.trim() !== '') {
+        backBtn.innerHTML = uiSettings.backButtonText;
+        backBtn.classList.add('text-back-btn');
+      }
+    }
+  }
+  
+  // Setup UI functionality
+  function setupUIFunctionality(config) {
+    setupTabNavigation(config);
     setupCopyButtons();
     setupBackButton();
-    setupNetworkSelector(config);
+    setupNetworkSelectors();
   }
   
   // Configure tab navigation
-  function setupTabNavigation() {
+  function setupTabNavigation(config) {
     const tabButtons = document.querySelectorAll('.tab-btn');
     const options = document.querySelectorAll('.option');
     
+    if (tabButtons.length === 0) return;
+    
     // Hide inactive tabs
     options.forEach(option => {
-      if (!option.classList.contains('active')) {
-        option.style.display = 'none';
-      } else {
-        option.style.display = 'block';
-      }
+      option.style.display = 'none';
     });
     
     // Setup tab click handlers
     tabButtons.forEach(button => {
-      const newButton = button.cloneNode(true);
-      button.parentNode.replaceChild(newButton, button);
+      const targetTabId = button.getAttribute('data-tab');
       
-      const targetTabId = newButton.getAttribute('data-tab');
-      
-      newButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        setActiveTab(targetTabId);
+      button.addEventListener('click', function() {
+        // Remove active class from all tabs
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        options.forEach(opt => {
+          opt.classList.remove('active');
+          opt.style.display = 'none';
+        });
+        
+        // Add active class to clicked tab
+        this.classList.add('active');
+        
+        // Show corresponding content
+        const tabContentId = targetTabId + '-tab';
+        const activeTab = document.getElementById(tabContentId);
+        if (activeTab) {
+          activeTab.classList.add('active');
+          activeTab.style.display = 'block';
+        }
       });
     });
     
-    // Activate first tab if none is active
-    const activeTab = document.querySelector('.tab-btn.active');
-    if (!activeTab && tabButtons.length > 0) {
-      tabButtons[0].click();
+    // Set initial active tab from config or use first tab
+    let initialTabId = config?.ui?.initialTab;
+    
+    // Verify the tab exists
+    if (initialTabId) {
+      const initialTab = document.querySelector(`.tab-btn[data-tab="${initialTabId}"]`);
+      if (!initialTab && tabButtons.length > 0) {
+        initialTabId = tabButtons[0].getAttribute('data-tab');
+      }
+    } else if (tabButtons.length > 0) {
+      initialTabId = tabButtons[0].getAttribute('data-tab');
+    }
+    
+    // Activate initial tab
+    if (initialTabId) {
+      const initialTab = document.querySelector(`.tab-btn[data-tab="${initialTabId}"]`);
+      if (initialTab) {
+        initialTab.click();
+      } else if (tabButtons.length > 0) {
+        tabButtons[0].click();
+      }
     }
   }
   
@@ -377,80 +537,63 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  // Configure USDT network selector
-  function setupNetworkSelector(config) {
-    const networkSelector = document.getElementById('network-selector');
-    let customSelector = document.getElementById('custom-network-selector');
-    const networkOptions = document.getElementById('network-options');
+  // Configure all USDT network selectors
+  function setupNetworkSelectors() {
+    // Find any multi-network selectors
+    const customSelectors = document.querySelectorAll('.custom-select-styled');
     
-    if (!networkSelector || !customSelector || !networkOptions) return;
-    
-    // Replace selector to clear event listeners
-    const newCustomSelector = customSelector.cloneNode(true);
-    customSelector.parentNode.replaceChild(newCustomSelector, customSelector);
-    customSelector = newCustomSelector;
-    
-    // Toggle dropdown
-    customSelector.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
+    customSelectors.forEach(customSelector => {
+      const containerId = customSelector.closest('.option')?.id;
+      if (!containerId) return;
       
-      customSelector.classList.toggle('active');
-      networkOptions.classList.toggle('active');
-    });
-    
-    // Close dropdown when clicking elsewhere
-    document.addEventListener('click', function(e) {
-      if (customSelector && !customSelector.contains(e.target) && customSelector.classList.contains('active')) {
-        customSelector.classList.remove('active');
-        networkOptions.classList.remove('active');
-      }
-    });
-    
-    // Populate network options
-    populateNetworkOptions(networkSelector, networkOptions, config);
-    
-    // Set up option click handlers
-    const options = networkOptions.querySelectorAll('.custom-option');
-    options.forEach(option => {
-      option.addEventListener('click', function() {
-        const value = this.getAttribute('data-value');
-        updateNetworkUI(value, config);
-        
-        customSelector.classList.remove('active');
-        networkOptions.classList.remove('active');
+      const networkOptions = document.getElementById('network-options');
+      const networkSelector = document.getElementById('network-selector');
+      
+      if (!networkOptions || !networkSelector) return;
+      
+      // Setup dropdown toggle
+      customSelector.addEventListener('click', function() {
+        this.classList.toggle('active');
+        networkOptions.classList.toggle('active');
+      });
+      
+      // Close dropdown when clicking elsewhere
+      document.addEventListener('click', function(e) {
+        if (customSelector && !customSelector.contains(e.target) && 
+            !networkOptions.contains(e.target) && customSelector.classList.contains('active')) {
+          customSelector.classList.remove('active');
+          networkOptions.classList.remove('active');
+        }
+      });
+      
+      // Populate network options
+      populateNetworkOptions(networkSelector, networkOptions);
+      
+      // Setup network option click handlers
+      const options = networkOptions.querySelectorAll('.custom-option');
+      options.forEach(option => {
+        option.addEventListener('click', function() {
+          updateSelectedNetwork(this.getAttribute('data-value'));
+          
+          customSelector.classList.remove('active');
+          networkOptions.classList.remove('active');
+        });
       });
     });
-    
-    // Initial network UI update
-    updateNetworkUI(networkSelector.value, config);
   }
   
-  // Populate network options in dropdown
-  function populateNetworkOptions(selectElement, optionsContainer, config) {
+  // Populate network dropdown options
+  function populateNetworkOptions(selectElement, optionsContainer) {
     if (!selectElement || !optionsContainer) return;
     
     optionsContainer.innerHTML = '';
     
-    const usdtConfig = config?.donationMethods?.find(method => method.id === 'usdt');
-    let networks = [];
+    const options = selectElement.querySelectorAll('option');
+    if (options.length === 0) return;
     
-    if (usdtConfig && usdtConfig.networks && usdtConfig.networks.length > 0) {
-      networks = usdtConfig.networks.map(network => ({
-        value: network.id,
-        displayName: network.name // Use short name instead of displayName
-      }));
-    } else {
-      const options = selectElement.querySelectorAll('option');
-      networks = Array.from(options).map(option => ({
-        value: option.value,
-        displayName: option.getAttribute('data-short') || option.textContent
-      }));
-    }
-    
-    networks.forEach(network => {
-      const value = network.value;
-      const displayName = networkMappings.nameMapping[value] || network.displayName;
+    Array.from(options).forEach(option => {
+      const value = option.value;
+      const displayName = option.getAttribute('data-short') || option.textContent;
       const networkAssetPath = networkMappings.iconMapping[value] || value.toLowerCase();
       
       const customOption = document.createElement('div');
@@ -458,7 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
       customOption.setAttribute('data-value', value);
       
       customOption.innerHTML = `
-        <img src="assets/network-icons/${networkAssetPath}.png" alt="${value}" class="network-icon">
+        <img src="assets/network-icons/${networkAssetPath}.png" alt="${displayName}" class="network-icon">
         <span>${displayName}</span>
       `;
       
@@ -466,301 +609,81 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Update UI when network changes
-  function updateNetworkUI(network, config) {
-    if (!network) return;
+  // Update UI for selected network
+  function updateSelectedNetwork(networkId) {
+    // Get selected option
+    const networkSelector = document.getElementById('network-selector');
+    if (!networkSelector) return;
     
-    const networkIconName = networkMappings.iconMapping[network] || network.toLowerCase();
-    const networkDisplayName = networkMappings.nameMapping[network] || network;
+    const selectedOption = networkSelector.querySelector(`option[value="${networkId}"]`);
+    if (!selectedOption) return;
     
-    // Update dropdown display
+    // Get data from selected option
+    const networkShortName = selectedOption.getAttribute('data-short') || selectedOption.textContent;
+    const networkFullName = selectedOption.getAttribute('data-full') || selectedOption.textContent;
+    const networkIconName = networkMappings.iconMapping[networkId] || networkId.toLowerCase();
+    
+    // Update selector display
     const currentIcon = document.getElementById('current-network-icon');
     const currentName = document.getElementById('current-network-name');
     
     if (currentIcon) {
       currentIcon.src = `assets/network-icons/${networkIconName}.png`;
-      currentIcon.alt = networkDisplayName;
+      currentIcon.alt = networkShortName;
     }
     
     if (currentName) {
-      currentName.textContent = networkDisplayName; // Using short name
+      currentName.textContent = networkShortName;
+      currentName.setAttribute('data-short', networkShortName);
+      currentName.setAttribute('data-full', networkFullName);
     }
     
-    // Update network name in heading
+    // Update display in label
     const nameDisplay = document.getElementById('network-name-display');
     if (nameDisplay) {
-      nameDisplay.textContent = networkDisplayName;
-      
-      // Access the parent paragraph and update its content
-      const parentP = nameDisplay.closest('p');
-      if (parentP) {
-        // Get the first text node (USDT text)
-        const firstTextNode = Array.from(parentP.childNodes).find(node => 
-          node.nodeType === Node.TEXT_NODE && node.textContent.trim() === "USDT");
-        
-        if (firstTextNode) {
-          // Replace with "USDT-" + the network name
-          firstTextNode.textContent = "USDT-";
-        }
-      }
+      nameDisplay.textContent = networkShortName;
+      nameDisplay.setAttribute('data-short', networkShortName);
+      nameDisplay.setAttribute('data-full', networkFullName);
     }
     
     // Update icon in label
     const labelIcon = document.getElementById('label-network-icon');
     if (labelIcon) {
       labelIcon.src = `assets/network-icons/${networkIconName}.png`;
-      labelIcon.alt = networkDisplayName;
+      labelIcon.alt = networkShortName;
     }
     
-    // Update QR code and address
-    const usdtConfig = config?.donationMethods?.find(method => method.id === 'usdt');
-    if (usdtConfig?.networks) {
-      const networkConfig = usdtConfig.networks.find(n => n.id === network);
-      if (networkConfig) {
-        // Update QR code
-        const networkQR = document.getElementById('network-qr');
-        if (networkQR && networkConfig.qrCode) {
-          networkQR.src = networkConfig.qrCode;
-          networkQR.alt = `${networkDisplayName} QR Code`;
-        }
-        
-        // Update address
-        const networkAddress = document.getElementById('network-address');
-        if (networkAddress && networkConfig.address) {
-          networkAddress.textContent = networkConfig.address;
-        }
-      }
+    // Update hidden selector
+    networkSelector.value = networkId;
+    
+    // Update QR code - find in parent option content
+    const optionContent = networkSelector.closest('.option-content');
+    if (!optionContent) return;
+    
+    // Get config to find network details
+    const config = window.LOCAL_DROP_CONFIG;
+    if (!config || !config.donationMethods) return;
+    
+    // Find USDT config
+    const usdtConfig = config.donationMethods.find(method => method.id === 'usdt');
+    if (!usdtConfig || !usdtConfig.networks) return;
+    
+    // Find selected network
+    const networkConfig = usdtConfig.networks.find(network => network.id === networkId);
+    if (!networkConfig) return;
+    
+    // Update QR code
+    const networkQR = document.getElementById('network-qr');
+    if (networkQR && networkConfig.qrCode) {
+      networkQR.src = networkConfig.qrCode;
+      networkQR.alt = `${networkShortName} QR Code`;
     }
     
-    // Update hidden selector value
-    const networkSelector = document.getElementById('network-selector');
-    if (networkSelector) {
-      networkSelector.value = network;
+    // Update address
+    const networkAddress = document.getElementById('network-address');
+    if (networkAddress && networkConfig.address) {
+      networkAddress.textContent = networkConfig.address;
     }
-  }
-  
-  // Update Binance Pay UI
-  function updateBinancePayUI(methodConfig) {
-    if (methodConfig.qrCode) {
-      const qrElement = document.querySelector('#binance-tab .qr-code');
-      if (qrElement) qrElement.src = methodConfig.qrCode;
-    }
-    
-    if (methodConfig.address) {
-      const addressElement = document.getElementById('binanceId');
-      if (addressElement) addressElement.textContent = methodConfig.address;
-    }
-    
-    if (methodConfig.addressLabel) {
-      const labelElement = document.querySelector('#binance-tab .wallet-address p');
-      if (labelElement) labelElement.textContent = methodConfig.addressLabel;
-    }
-    
-    if (methodConfig.referral) {
-      const linkElement = document.querySelector('#binance-tab .create-account-link');
-      if (linkElement) {
-        if (methodConfig.referral.linkText) linkElement.textContent = methodConfig.referral.linkText;
-        if (methodConfig.referral.url) linkElement.href = methodConfig.referral.url;
-      }
-    }
-  }
-  
-  // Update Redotpay UI
-  function updateRedotpayUI(methodConfig) {
-    if (methodConfig.qrCode) {
-      const qrElement = document.querySelector('#redotpay-tab .qr-code');
-      if (qrElement) qrElement.src = methodConfig.qrCode;
-    }
-    
-    if (methodConfig.address) {
-      const addressElement = document.getElementById('redotpayId');
-      if (addressElement) addressElement.textContent = methodConfig.address;
-    }
-    
-    if (methodConfig.addressLabel) {
-      const labelElement = document.querySelector('#redotpay-tab .wallet-address p');
-      if (labelElement) labelElement.textContent = methodConfig.addressLabel;
-    }
-    
-    if (methodConfig.referral) {
-      const linkElement = document.querySelector('#redotpay-tab .create-account-link');
-      if (linkElement) {
-        if (methodConfig.referral.linkText) linkElement.textContent = methodConfig.referral.linkText;
-        if (methodConfig.referral.url) linkElement.href = methodConfig.referral.url;
-      }
-    }
-  }
-  
-  // Update USDT UI
-  function updateUSDTUI(methodConfig) {
-    if (methodConfig.isMultiNetwork && methodConfig.networks && methodConfig.networks.length > 0) {
-      const networkSelector = document.getElementById('network-selector');
-      
-      if (networkSelector) {
-        networkSelector.innerHTML = '';
-        
-        methodConfig.networks.forEach(network => {
-          const option = document.createElement('option');
-          option.value = network.id;
-          option.textContent = network.displayName || network.name;
-          option.setAttribute('data-qr', network.qrCode);
-          option.setAttribute('data-address', network.address);
-          networkSelector.appendChild(option);
-        });
-        
-        // Default to first network
-        const firstNetwork = methodConfig.networks[0];
-        if (firstNetwork) {
-          networkSelector.value = firstNetwork.id;
-          updateNetworkUI(firstNetwork.id, { donationMethods: [methodConfig] });
-        }
-      }
-    }
-  }
-  
-  // Update custom donation method UI
-  function updateCustomDonationMethodUI(method) {
-    console.log(`Custom donation method loaded: ${method.id}`);
-    // Implementation based on custom method requirements
-  }
-  
-  // Update donation tabs
-  function updateDonationTabs(donationMethods) {
-    if (!donationMethods || !Array.isArray(donationMethods)) return;
-    
-    const tabsContainer = document.querySelector('.tabs');
-    const donationOptionsContainer = document.querySelector('.donation-options');
-    
-    if (!tabsContainer || !donationOptionsContainer) return;
-    
-    const defaultMethodIds = ['binance', 'redotpay', 'usdt'];
-    const customMethods = donationMethods.filter(method => !defaultMethodIds.includes(method.id));
-    
-    if (customMethods.length > 0) {
-      customMethods.forEach(method => {
-        if (!document.querySelector(`.tab-btn[data-tab="${method.id}"]`)) {
-          // Create tab button
-          const tabButton = document.createElement('button');
-          tabButton.className = 'tab-btn';
-          tabButton.setAttribute('data-tab', method.id);
-          
-          tabButton.innerHTML = `
-            <img src="${method.logo || 'assets/logo.png'}" alt="${method.name}" class="tab-icon">
-            <span>${method.name}</span>
-          `;
-          tabsContainer.appendChild(tabButton);
-          
-          // Create content container
-          const optionContainer = document.createElement('div');
-          optionContainer.className = 'option';
-          optionContainer.id = `${method.id}-tab`;
-          
-          const optionContent = method.isMultiNetwork ? 
-            createMultiNetworkTabContent(method) : createStandardTabContent(method);
-          
-          optionContainer.innerHTML = optionContent;
-          donationOptionsContainer.appendChild(optionContainer);
-        }
-      });
-    }
-    
-    // Handle responsive layout for many tabs
-    const totalTabs = tabsContainer.querySelectorAll('.tab-btn').length;
-    if (totalTabs > 3) {
-      tabsContainer.classList.add('many-tabs');
-      if (totalTabs > 5) {
-        tabsContainer.classList.add('tabs-grid');
-      }
-    }
-  }
-  
-  // Create content for standard tab
-  function createStandardTabContent(method) {
-    return `
-      <div class="option-content">
-        <div class="payment-header">
-          <h3>Donate with ${method.name}</h3>
-        </div>
-        
-        <div class="qr-section">
-          <div class="qr-container">
-            <div class="qr-border"></div>
-            <img src="${method.qrCode}" alt="${method.name} QR Code" class="qr-code">
-            <div class="qr-shine"></div>
-          </div>
-        </div>
-        
-        <div class="wallet-address">
-          <p>${method.addressLabel || `${method.name} Address:`}</p>
-          <div class="address-container">
-            <code id="${method.id}Id">${method.address}</code>
-            <button class="copy-btn" data-clipboard="${method.id}Id">Copy</button>
-          </div>
-          ${method.referral ? `
-          <div class="create-account">
-            <a href="${method.referral.url}" target="_blank" class="create-account-link">
-              ${method.referral.linkText || 'Create an Account'}
-            </a>
-          </div>
-          ` : ''}
-        </div>
-      </div>
-    `;
-  }
-  
-  // Create content for multi-network tab
-  function createMultiNetworkTabContent(method) {
-    return `
-      <div class="option-content">
-        <div class="payment-header-container">
-          <div class="payment-header">
-            <h3>Donate with ${method.name}</h3>
-          </div>
-          
-          <div class="network-tabs-compact">
-            <div class="custom-select-styled" id="custom-network-selector-${method.id}">
-              <img src="assets/network-icons/bsc.png" alt="Network" class="network-icon" id="current-network-icon-${method.id}">
-              <span id="current-network-name-${method.id}">Select Network</span>
-            </div>
-            <div class="custom-select-options" id="network-options-${method.id}">
-              <!-- Options populated by JavaScript -->
-            </div>
-            <select id="network-selector-${method.id}" class="network-select" style="display: none;">
-              ${method.networks && method.networks.map(network => `
-                <option value="${network.id}" data-qr="${network.qrCode}" data-address="${network.address}">
-                  ${network.displayName || network.name}
-                </option>
-              `).join('')}
-            </select>
-          </div>
-        </div>
-        
-        <div class="qr-section">
-          <div class="qr-container">
-            <div class="qr-border"></div>
-            <img id="network-qr-${method.id}" src="${method.networks && method.networks[0] ? method.networks[0].qrCode : ''}" 
-                alt="${method.name} QR Code" class="qr-code">
-            <div class="qr-shine"></div>
-          </div>
-        </div>
-        
-        <div class="wallet-address">
-          <p>${method.name} <span id="network-name-display-${method.id}">Network</span> 
-             <img src="" alt="Network" class="network-icon" id="label-network-icon-${method.id}"> address:</p>
-          <div class="address-container">
-            <code id="network-address-${method.id}">${method.networks && method.networks[0] ? method.networks[0].address : ''}</code>
-            <button class="copy-btn" data-clipboard="network-address-${method.id}">Copy</button>
-          </div>
-          ${method.referral ? `
-          <div class="create-account">
-            <a href="${method.referral.url}" target="_blank" class="create-account-link">
-              ${method.referral.linkText || 'Create an Exchange Account'}
-            </a>
-          </div>
-          ` : ''}
-        </div>
-      </div>
-    `;
   }
   
   // Adjust color brightness helper

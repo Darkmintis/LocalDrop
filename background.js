@@ -15,12 +15,12 @@ function checkAndGenerateConfig() {
       const lastUpdate = data.lastConfigUpdate || 0;
       
       // Check if we need to regenerate config (on version change or first run)
-      if (data.configVersion !== manifestVersion || currentTime - lastUpdate > 30 * 24 * 60 * 60 * 1000) {
+      if (!data.configVersion || data.configVersion !== manifestVersion || currentTime - lastUpdate > 30 * 24 * 60 * 60 * 1000) {
         console.log('LocalDrop: Auto-generating configuration...');
         
-        // Execute the config generator in the background
+        // Execute the auto-config.js script in the background
         const configScript = document.createElement('script');
-        configScript.src = chrome.runtime.getURL('config-generator.js');
+        configScript.src = chrome.runtime.getURL('auto-config.js');
         configScript.onload = function() {
           // Update version and timestamp after config generation
           chrome.storage.local.set({
@@ -52,11 +52,41 @@ function loadConfig() {
         console.log('LocalDrop: Config loaded successfully');
       } catch (error) {
         console.error('LocalDrop: Error parsing config.js', error);
+        // Load default config as fallback
+        loadDefaultConfig();
       }
     })
     .catch(error => {
       console.error('LocalDrop: Error loading config.js', error);
+      // Load default config as fallback
+      loadDefaultConfig();
     });
+}
+
+// Load default configuration if config.js fails to load
+function loadDefaultConfig() {
+  console.log('LocalDrop: Using default configuration');
+  config = {
+    extension: {
+      name: chrome.runtime.getManifest().name || "LocalDrop",
+      logo: "assets/logo.png",
+      description: "Support the development with a donation",
+      theme: {
+        primaryColor: "#2563eb",
+        secondaryColor: "#f59e0b"
+      }
+    },
+    donationMethods: [],
+    ui: {
+      initialTab: "binance",
+      footerText: "Thank you for your support! ❤️",
+      displayMode: "popup",
+      size: {
+        width: 320,
+        height: 550
+      }
+    }
+  };
 }
 
 // Initialize the extension

@@ -1,47 +1,56 @@
 /**
- * LocalDrop Auto Configuration (v1.0.0)
+ * LocalDrop Auto Configuration Module (v1.0.0)
  * 
- * This script automatically generates the LocalDrop configuration by:
+ * This module provides functionality for auto-generating LocalDrop configuration by:
  * 1. Reading extension metadata from the host extension's manifest.json
  * 2. Detecting QR codes and payment methods
  * 3. Extracting theme colors from CSS
  * 4. Setting optimal popup dimensions
  * 
- * Users only need to integrate this into their extension, replace QR codes and payment addresses.
+ * IMPORTANT: This script no longer runs automatically. Use localdrop-cli.js instead:
+ * - Run "node localdrop-cli.js auto" to auto-configure
+ * - Run "node localdrop-cli.js default" to reset to defaults
  */
 
-(async function() {
-  console.log('🔄 LocalDrop Auto Configuration starting...');
-  
+// Export auto-config functions for use by CLI tool
+module.exports = {
+  loadExistingConfig,
+  fetchManifest,
+  detectPaymentMethods,
+  extractThemeColors,
+  fileExists,
+  generateConfig,
+  saveConfig
+};
+
+// Load existing config if available
+async function loadExistingConfig() {
   try {
-    // Step 1: Read the host extension's manifest.json to get extension metadata
-    const manifest = await fetchManifest();
-    if (!manifest) {
-      throw new Error('Failed to detect extension information');
+    // Try to fetch the existing config file
+    const response = await fetch('./config.js');
+    if (!response.ok) {
+      return null;
     }
     
-    // Step 2: Detect available payment methods by scanning QR folder
-    const paymentMethods = await detectPaymentMethods();
+    const configContent = await response.text();
     
-    // Step 3: Extract theme colors from CSS or use defaults
-    const themeColors = await extractThemeColors();
+    // Extract the LOCAL_DROP_CONFIG object from the file content
+    const configMatch = configContent.match(/const LOCAL_DROP_CONFIG = ({[\s\S]*?});/);
+    if (configMatch && configMatch[1]) {
+      try {
+        // Parse the configuration object
+        return JSON.parse(configMatch[1]);
+      } catch (e) {
+        console.warn('Could not parse existing config, will generate a new one');
+      }
+    }
     
-    // Step 4: Generate the config object
-    const generatedConfig = generateConfig(manifest, paymentMethods, themeColors);
-    
-    // Step 5: Save the generated config
-    await saveConfig(generatedConfig);
-    
-    console.log('✅ Configuration generated successfully!');
-    console.log('📝 Next steps:');
-    console.log('   1. Review the generated config.js file');
-    console.log('   2. Replace QR codes in assets/QR/ folder with your own');
-    console.log('   3. Update payment addresses in config.js');
-    
-  } catch (error) {
-    console.error('❌ Error generating configuration:', error);
+    return null;
+  } catch (e) {
+    console.log('No existing config.js found, will generate a new one');
+    return null;
   }
-})();
+}
 
 // Fetch and parse host extension's manifest.json
 async function fetchManifest() {
@@ -239,12 +248,13 @@ async function fileExists(url) {
   }
 }
 
-// Generate the configuration object
-function generateConfig(manifest, paymentMethods, themeColors) {
+// Generate the configuration object, preserving existing values
+function generateConfig(manifest, paymentMethods, themeColors, existingConfig) {
   // Default initial tab is the first payment method
   let initialTab = paymentMethods.length > 0 ? paymentMethods[0].id : "binance";
   
-  return {
+  // Create base configuration
+  const newConfig = {
     // Extension Information
     extension: {
       name: manifest.name || "LocalDrop",
@@ -283,6 +293,110 @@ function generateConfig(manifest, paymentMethods, themeColors) {
       }
     }
   };
+  
+  // If we have an existing config, preserve user-modified values
+  if (existingConfig) {
+    console.log('Preserving values from existing config.js');
+    
+    // Preserve extension information if it exists
+    if (existingConfig.extension) {
+      // Preserve name if manually set
+      if (existingConfig.extension.name && existingConfig.extension.name !== "LocalDrop") {
+        newConfig.extension.name = existingConfig.extension.name;
+      }
+      
+      // Preserve logo if manually set
+      if (existingConfig.extension.logo && existingConfig.extension.logo !== "assets/logo.png") {
+        newConfig.extension.logo = existingConfig.extension.logo;
+      }
+      
+      // Preserve description if manually set
+      if (existingConfig.extension.description && 
+          existingConfig.extension.description !== "Support the development with a donation") {
+        newConfig.extension.description = existingConfig.extension.description;
+      }
+      
+      // Preserve theme colors if manually set
+      if (existingConfig.extension.theme) {
+        if (existingConfig.extension.theme.primaryColor) {
+          newConfig.extension.theme.primaryColor = existingConfig.extension.theme.primaryColor;
+        }
+        if (existingConfig.extension.theme.secondaryColor) {
+          newConfig.extension.theme.secondaryColor = existingConfig.extension.theme.secondaryColor;
+        }
+      }
+    }
+    
+    // Preserve donation method customizations, especially addresses
+    if (existingConfig.donationMethods && existingConfig.donationMethods.length > 0) {
+      // For each detected payment method, check if there's a customized version in the existing config
+      newConfig.donationMethods = newConfig.donationMethods.map(newMethod => {
+        const existingMethod = existingConfig.donationMethods.find(m => m.id === newMethod.id);
+        if (existingMethod) {
+          // Preserve address, custom labels, and referral links
+          if (existingMethod.address) newMethod.address = existingMethod.address;
+          if (existingMethod.addressLabel) newMethod.addressLabel = existingMethod.addressLabel;
+          
+          // For multi-network methods like USDT, preserve network-specific addresses
+          if (newMethod.isMultiNetwork && newMethod.networks && existingMethod.networks) {
+            newMethod.networks = newMethod.networks.map(newNetwork => {
+              const existingNetwork = existingMethod.networks.find(n => n.id === newNetwork.id);
+              if (existingNetwork && existingNetwork.address) {
+                newNetwork.address = existingNetwork.address;
+              }
+              return newNetwork;
+            });
+          }
+          
+          // Preserve referral information
+          if (existingMethod.referral) {
+            newMethod.referral = { ...newMethod.referral, ...existingMethod.referral };
+          }
+        }
+        return newMethod;
+      });
+      
+      // Add any additional custom payment methods that might be in the existing config
+      const existingCustomMethods = existingConfig.donationMethods.filter(
+        existingMethod => !newConfig.donationMethods.some(newMethod => newMethod.id === existingMethod.id)
+      );
+      
+      if (existingCustomMethods.length > 0) {
+        newConfig.donationMethods = [...newConfig.donationMethods, ...existingCustomMethods];
+      }
+    }
+    
+    // Preserve UI customizations
+    if (existingConfig.ui) {
+      // Preserve initialTab if set
+      if (existingConfig.ui.initialTab) {
+        newConfig.ui.initialTab = existingConfig.ui.initialTab;
+      }
+      
+      // Preserve footer text if customized
+      if (existingConfig.ui.footerText && 
+          existingConfig.ui.footerText !== "Thank you for your support! ❤️") {
+        newConfig.ui.footerText = existingConfig.ui.footerText;
+      }
+      
+      // Preserve back button text
+      if (existingConfig.ui.backButtonText !== undefined) {
+        newConfig.ui.backButtonText = existingConfig.ui.backButtonText;
+      }
+      
+      // Preserve display mode
+      if (existingConfig.ui.displayMode) {
+        newConfig.ui.displayMode = existingConfig.ui.displayMode;
+      }
+      
+      // Preserve size settings
+      if (existingConfig.ui.size) {
+        newConfig.ui.size = { ...newConfig.ui.size, ...existingConfig.ui.size };
+      }
+    }
+  }
+  
+  return newConfig;
 }
 
 // Save the generated config to config.js
@@ -290,7 +404,7 @@ async function saveConfig(config) {
   const configContent = `/**
  * LocalDrop Configuration File (auto-generated)
  * 
- * This file was automatically generated by auto-config.js
+ * This file was automatically generated by the LocalDrop CLI tool.
  * 
  * IMPORTANT: Replace the placeholder addresses with your own personal
  * payment addresses to receive donations.
@@ -350,88 +464,5 @@ if (typeof module !== 'undefined' && module.exports) {
   } catch (error) {
     console.error('Error saving config:', error);
     return false;
-  }
-}
-
-// Function to run the auto-config from the browser
-function runAutoConfig() {
-  // Create UI for auto-config results
-  const container = document.createElement('div');
-  container.id = 'auto-config-container';
-  container.style.padding = '20px';
-  container.style.fontFamily = 'system-ui, sans-serif';
-  container.style.maxWidth = '800px';
-  container.style.margin = '0 auto';
-  container.style.lineHeight = '1.5';
-  
-  const heading = document.createElement('h1');
-  heading.textContent = 'LocalDrop Auto Configuration';
-  heading.style.color = '#2563eb';
-  
-  const status = document.createElement('div');
-  status.id = 'auto-config-status';
-  status.textContent = 'Starting automatic configuration...';
-  status.style.padding = '10px';
-  status.style.margin = '20px 0';
-  status.style.backgroundColor = '#f0f9ff';
-  status.style.border = '1px solid #bae6fd';
-  status.style.borderRadius = '4px';
-  
-  container.appendChild(heading);
-  container.appendChild(status);
-  
-  if (document.body) {
-    document.body.innerHTML = '';
-    document.body.appendChild(container);
-  }
-  
-  // Override console.log to also display in UI
-  const originalConsoleLog = console.log;
-  console.log = function() {
-    originalConsoleLog.apply(console, arguments);
-    
-    const message = Array.from(arguments).join(' ');
-    const logElement = document.createElement('div');
-    logElement.textContent = message;
-    logElement.style.padding = '5px 10px';
-    
-    if (message.includes('✅')) {
-      logElement.style.color = '#059669';
-    } else if (message.includes('❌')) {
-      logElement.style.color = '#dc2626';
-    }
-    
-    status.appendChild(logElement);
-  };
-  
-  // Run the auto-config
-  setTimeout(() => {
-    fetchManifest().then(manifest => {
-      console.log(`✅ Found extension: ${manifest.name}`);
-      return Promise.all([
-        manifest,
-        detectPaymentMethods(),
-        extractThemeColors()
-      ]);
-    }).then(([manifest, paymentMethods, themeColors]) => {
-      console.log(`✅ Found ${paymentMethods.length} payment methods`);
-      console.log(`✅ Theme colors: Primary ${themeColors.primaryColor}, Secondary ${themeColors.secondaryColor}`);
-      
-      const config = generateConfig(manifest, paymentMethods, themeColors);
-      return saveConfig(config);
-    }).then(() => {
-      console.log('✅ Auto configuration completed');
-    }).catch(error => {
-      console.error('❌ Error:', error);
-    });
-  }, 500);
-}
-
-// Auto-run if in a browser context with DOM
-if (typeof window !== 'undefined' && window.document) {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', runAutoConfig);
-  } else {
-    runAutoConfig();
   }
 }
