@@ -45,21 +45,45 @@ ${colors.yellow}LocalDrop CLI Tool${colors.reset} - ${colors.dim}Donation system
 `);
 }
 
-// Helper function to safely write files with proper encoding
-function safeWriteFile(filePath, content) {
+// Helper function to write files with guaranteed UTF-8 encoding without BOM
+function guaranteedWriteFile(filePath, content) {
   try {
-    // Always use UTF-8 without BOM to avoid encoding issues
-    fs.writeFileSync(filePath, content, { encoding: 'utf8' });
+    // Method 1: Use Buffer API to guarantee UTF-8 encoding without BOM
+    const buffer = Buffer.from(content, 'utf8');
+    fs.writeFileSync(filePath, buffer);
     
-    // Verify the file was written correctly by reading it back
+    // Verify the file was written correctly
     try {
       const readBack = fs.readFileSync(filePath, { encoding: 'utf8' });
+      
+      // Check for encoding issues
       if (readBack.includes('�') || !readBack.includes('LOCAL_DROP_CONFIG')) {
-        console.error(`${colors.red}⚠️ Warning: Potential encoding issue detected in written file${colors.reset}`);
+        console.error(`${colors.yellow}⚠️ Warning: First write attempt had encoding issues, trying method 2...${colors.reset}`);
         
-        // Try to fix by writing again with a different method
+        // Method 2: Try with explicit encoding option
         fs.writeFileSync(filePath, content, { encoding: 'utf8' });
-        console.log(`${colors.green}✅ Attempted to fix encoding issue${colors.reset}`);
+        
+        // Verify again
+        const secondReadBack = fs.readFileSync(filePath, { encoding: 'utf8' });
+        if (secondReadBack.includes('�') || !secondReadBack.includes('LOCAL_DROP_CONFIG')) {
+          console.error(`${colors.yellow}⚠️ Warning: Second write attempt had encoding issues, trying method 3...${colors.reset}`);
+          
+          // Method 3: Create a temporary file and rename
+          const tempFile = `${filePath}.tmp`;
+          fs.writeFileSync(tempFile, content, { encoding: 'utf8' });
+          
+          // On Windows, we need to unlink the destination first
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
+          
+          fs.renameSync(tempFile, filePath);
+          console.log(`${colors.green}✅ Used file rename method to avoid encoding issues${colors.reset}`);
+        } else {
+          console.log(`${colors.green}✅ File written successfully with method 2${colors.reset}`);
+        }
+      } else {
+        console.log(`${colors.green}✅ File written successfully with method 1${colors.reset}`);
       }
     } catch (readError) {
       console.error(`${colors.red}❌ Error verifying file contents:${colors.reset}`, readError);
@@ -69,20 +93,30 @@ function safeWriteFile(filePath, content) {
   } catch (error) {
     console.error(`${colors.red}❌ Error writing to ${path.basename(filePath)}:${colors.reset}`, error);
     
-    // Try to recover if possible
+    // Try an alternative approach using Node.js writeFileSync with a buffer
     try {
-      // Create a backup with timestamp
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const backupPath = `${filePath}.${timestamp}.bak`;
+      console.log(`${colors.yellow}⚠️ Trying alternative file writing method...${colors.reset}`);
+      const fallbackBuffer = Buffer.from(content);
+      fs.writeFileSync(filePath, fallbackBuffer);
+      console.log(`${colors.green}✅ File written successfully with fallback method${colors.reset}`);
+      return true;
+    } catch (fallbackError) {
+      console.error(`${colors.red}❌ Fallback method also failed:${colors.reset}`, fallbackError);
       
-      console.log(`${colors.yellow}⚠️ Attempting to create backup at ${backupPath}${colors.reset}`);
-      fs.writeFileSync(backupPath, content, { encoding: 'utf8' });
-      console.log(`${colors.green}✅ Backup created successfully${colors.reset}`);
-    } catch (backupError) {
-      console.error(`${colors.red}❌ Could not create backup:${colors.reset}`, backupError);
+      // Create a backup with timestamp
+      try {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const backupPath = `${filePath}.${timestamp}.bak`;
+        
+        console.log(`${colors.yellow}⚠️ Attempting to create backup at ${backupPath}${colors.reset}`);
+        fs.writeFileSync(backupPath, content, { encoding: 'utf8' });
+        console.log(`${colors.green}✅ Backup created successfully${colors.reset}`);
+      } catch (backupError) {
+        console.error(`${colors.red}❌ Could not create backup:${colors.reset}`, backupError);
+      }
+      
+      return false;
     }
-    
-    return false;
   }
 }
 
@@ -478,8 +512,8 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = LOCAL_DROP_CONFIG;
 }`;
 
-    // Use safeWriteFile to write with proper encoding
-    if (safeWriteFile(configPath, configContent)) {
+    // Use guaranteedWriteFile to write with proper encoding
+    if (guaranteedWriteFile(configPath, configContent)) {
       console.log(`${colors.green}✅ Configuration saved to config.js${colors.reset}`);
       console.log(`${colors.blue}${colors.bright}Next steps:${colors.reset}`);
       console.log(`${colors.dim}1. Replace placeholder addresses in config.js with your own payment details${colors.reset}`);
@@ -607,7 +641,7 @@ if (typeof module !== 'undefined' && module.exports) {
 }`;
 
     // Use explicit UTF-8 encoding when writing the file
-    safeWriteFile(configPath, configContent);
+    guaranteedWriteFile(configPath, configContent);
     console.log(`${colors.green}✅ Reset to default configuration${colors.reset}`);
     
   } catch (error) {
