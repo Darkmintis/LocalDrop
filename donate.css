@@ -1,65 +1,33 @@
-/* Enhanced responsive CSS variables */
+/* LocalDrop Donation Page Styles - Optimized for popup mode */
 :root {
-  /* Colors remain unchanged */
   --primary-color: #2563eb;
   --primary-hover: #1d4ed8;
-  --primary-light: #dbeafe;
+  --primary-light: #93c5fd;
   --secondary-color: #f59e0b;
   --secondary-hover: #d97706;
-  --secondary-light: #fef3c7;
+  --secondary-light: #fcd34d;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --white: #ffffff;
+  --black: #000000;
+  --border-radius: 8px;
+  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --transition: all 0.2s ease;
+  --background: #f9fafb;
   --text-color: #1f2937;
-  --light-text: #6b7280;
-  --background: #f3f4f6;
-  --card-background: #ffffff;
   --border-color: #e5e7eb;
-  --success: #10b981;
-  --success-light: #d1fae5;
-  
-  /* Shadows remain unchanged */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  
-  /* Font sizes - base 16px */
-  --font-size-xs: 0.75rem;   /* 12px */
-  --font-size-sm: 0.875rem;  /* 14px */
-  --font-size-base: 1rem;    /* 16px */
-  --font-size-lg: 1.125rem;  /* 18px */
-  --font-size-xl: 1.25rem;   /* 20px */
-  
-  /* Spacing units - base 4px */
-  --space-1: 0.25rem;  /* 4px */
-  --space-2: 0.5rem;   /* 8px */
-  --space-3: 0.75rem;  /* 12px */
-  --space-4: 1rem;     /* 16px */
-  --space-5: 1.25rem;  /* 20px */
-  --space-6: 1.5rem;   /* 24px */
-  
-  /* Component sizes that scale with viewport */
-  --qr-size-base: 230px;
-  --qr-size: clamp(150px, 40vmin, var(--qr-size-base)); /* Min 150px, max 230px, 40% of viewport min dimension */
-  
-  /* Layout proportions */
-  --header-height: clamp(60px, 12vh, 80px);
-  --tabs-height: clamp(40px, 8vh, 50px);
-  --footer-height: clamp(40px, 8vh, 52px);
-  
-  /* Auto-adjusting content area */
-  --content-area-height: calc(100vh - var(--header-height) - var(--tabs-height) - var(--footer-height));
-  
-  /* Responsive padding */
-  --container-padding: clamp(0.5rem, 3vw, 1rem);
-  
-  /* Animation duration */
-  --animation-duration: 0.3s;
-  
-  /* Border radius */
-  --radius-sm: 0.25rem;  /* 4px */
-  --radius-md: 0.5rem;   /* 8px */
-  --radius-lg: 0.75rem;  /* 12px */
+  --popup-width: 320px;
+  --popup-height: 550px;
 }
 
-/* Basic reset and responsive container */
+/* Base Styles */
 * {
   margin: 0;
   padding: 0;
@@ -67,152 +35,256 @@
 }
 
 html, body {
-  height: 100%;
-  width: 100%;
+  width: var(--popup-width) !important;
+  height: var(--popup-height) !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  font-size: 14px !important;
+}
+
+html.popup-mode, body.popup-mode {
+  position: relative !important;
+  max-width: var(--popup-width) !important;
+  min-width: var(--popup-width) !important;
+  max-height: var(--popup-height) !important;
+}
+
+/* Hide any fullscreen-specific elements */
+.fullscreen-only {
+  display: none !important;
+}
+
+body {
   font-family: 'Inter', sans-serif;
+  background-color: var(--white);
+  color: var(--gray-800);
   line-height: 1.5;
-  color: var(--text-color);
-  background: var(--background);
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-html::-webkit-scrollbar, body::-webkit-scrollbar {
-  display: none;
-}
-
-.popup-mode {
-  min-width: 320px;
-  min-height: 480px;
-  max-width: 400px;
-  max-height: 600px;
-  overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.popup-mode::-webkit-scrollbar {
-  display: none;
-}
-
-/* New-tab mode styling for full-screen displays */
-.new-tab-mode {
-  min-width: 100% !important;
-  min-height: 100% !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-  width: 100% !important;
-  height: 100% !important;
-  overflow-y: auto !important;
-}
-
-.new-tab-mode .container {
-  max-width: 100% !important;
-  width: 100% !important;
-  height: auto !important;
-  min-height: 100vh !important;
-}
-
-.new-tab-mode .donation-options {
-  padding: 20px !important;
-  max-width: 100% !important;
-}
-
-.new-tab-mode .option-content {
-  padding: 15px !important;
-}
-
-/* Responsive layout for new-tab-mode on larger screens */
-@media (min-width: 768px) {
-  .new-tab-mode .option-content {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px !important;
-  }
-  
-  .new-tab-mode .qr-container {
-    width: 250px !important;
-    height: 250px !important;
-    max-width: 250px !important;
-    max-height: 250px !important;
-  }
-}
-
-/* Main container structure */
+/* Container */
 .container {
-  position: relative;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 100%;
-  overflow: hidden;
-}
-
-/* Instead of using overflow: hidden on all components, we'll use other techniques */
-.option, .option-content, .payment-header,
-.qr-section, .network-tabs-compact, .referral-section,
-.wallet-address, .network-content,
-footer, header, .tabs {
-  max-width: 100%;
-  box-sizing: border-box;
-  /* Allow content to be visible */
-  overflow-x: visible;
-  overflow-y: visible;
-}
-
-/* Only prevent horizontal overflow */
-.qr-container {
-  overflow-x: hidden;
-}
-
-/* QR container with consistent sizing across all payment methods */
-.qr-container {
-  width: 150px;
-  height: 150px;
   position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-  background: white;
-  transform: translateZ(0);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  margin: 0 auto;
-  max-width: 150px; /* Limit maximum size */
-  max-height: 150px; /* Limit maximum size */
-  z-index: 1; /* Lower z-index */
-  pointer-events: none; /* Prevent capturing clicks */
+  background-color: var(--white);
 }
 
-.qr-container:hover {
-  transform: translateY(-5px) rotateX(5deg) rotateY(5deg);
-  box-shadow: var(--shadow-lg);
+/* Header Styles */
+header {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  color: var(--white);
+  padding: 15px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.logo img {
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+  border-radius: 6px;
+}
+
+.logo h1 {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+#extension-description {
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+/* Tabs Navigation */
+.tabs {
+  display: flex;
+  background-color: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex-shrink: 0;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-btn {
+  flex: 1;
+  min-width: 80px;
+  padding: 10px 8px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--gray-600);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  position: relative;
+}
+
+.tab-btn .tab-icon {
+  width: 20px;
+  height: 20px;
+  margin-bottom: 4px;
+  opacity: 0.7;
+  transition: var(--transition);
+}
+
+.tab-btn span {
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--primary-color);
+}
+
+.tab-btn:hover .tab-icon {
+  opacity: 1;
+}
+
+.tab-btn.active {
+  color: var(--primary-color);
+  background-color: var(--primary-light);
+}
+
+.tab-btn.active .tab-icon {
+  opacity: 1;
+}
+
+.tab-btn.active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--primary-color);
+}
+
+/* Handle many tabs responsively */
+.tabs.many-tabs {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.tabs.many-tabs .tab-btn {
+  flex: 0 0 auto;
+  min-width: 100px;
+  max-width: 130px;
+  padding: 8px 4px;
+}
+
+.tabs.tabs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+}
+
+/* Donation Options */
+.donation-options {
+  flex: 1;
+  overflow-y: auto;
+  background-color: var(--white);
+}
+
+.option {
+  display: none;
+  padding: 10px;
+  height: 100%;
+}
+
+.option.active {
+  display: block;
+}
+
+.option-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Payment Method Header */
+.payment-header-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.payment-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.payment-header img {
+  width: 28px;
+  height: 28px;
+  margin-right: 8px;
+}
+
+.payment-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+/* QR Code Section */
+.qr-section {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0;
+}
+
+.qr-container {
+  position: relative;
+  width: 190px;
+  height: 190px;
+  padding: 8px;
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
 }
 
 .qr-border {
   position: absolute;
-  inset: 0;
-  border: 1px solid rgba(0,0,0,0.1);
-  border-radius: 12px;
-  z-index: 3;
-  pointer-events: none;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
 }
 
 .qr-code {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 10px;
-  position: relative;
-  z-index: 2;
-  transition: transform 0.3s ease;
-  pointer-events: auto; /* Allow interaction with QR code */
 }
 
-.qr-container:hover .qr-code {
-  transform: scale(1.02);
-}
-
-/* Add QR code shine effect */
 .qr-shine {
   position: absolute;
   top: -50%;
@@ -221,2514 +293,246 @@ footer, header, .tabs {
   height: 200%;
   background: linear-gradient(
     to right,
-    rgba(255,255,255,0) 0%,
-    rgba(255,255,255,0.3) 50%,
-    rgba(255,255,255,0) 100%
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
   );
-  transform: rotate(45deg);
-  animation: qr-shine 3s infinite;
-  z-index: 4;
+  transform: rotate(30deg);
+  animation: shine 6s infinite;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
 }
 
-.qr-container:hover .qr-shine {
-  opacity: 1;
-}
-
-@keyframes qr-shine {
+@keyframes shine {
   0% {
-    transform: translateX(-200%) rotate(45deg);
+    transform: translateX(-100%) rotate(30deg);
   }
-  100% {
-    transform: translateX(200%) rotate(45deg);
-  }
-}
-
-/* Allow vertical scrolling on the main container ONLY */
-.donation-options {
-  position: relative;
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: var(--container-padding);
-  display: flex;
-  flex-direction: column;
-  background: linear-gradient(180deg, #f9fafb 0%, rgba(249, 250, 251, 0) 10%);
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
-  position: relative; /* Ensure proper stacking context */
-  z-index: 10;
-}
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.donation-options::-webkit-scrollbar {
-  display: none;
-}
-
-/* Compact header with better spacing */
-header {
-  flex-shrink: 0;
-  padding: var(--container-padding);
-  background: linear-gradient(135deg, #4f87f5, #3867d6);
-  color: white;
-  text-align: center;
-  box-shadow: var(--shadow-md);
-  position: relative;
-  z-index: 100;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  /* Add more vertical space */
-  min-height: calc(var(--header-height) + 15px);
-}
-
-header::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
-  z-index: -1;
-  animation: pulse 15s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.1;
-  }
-  50% {
-    transform: scale(1.5);
-    opacity: 0.2;
+  20%, 100% {
+    transform: translateX(100%) rotate(30deg);
   }
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 8px;
-}
-
-.logo img {
-  width: 32px;
-  height: 32px;
-  margin-right: 10px;
-  border-radius: 8px;
-  /* Remove box-shadow to eliminate the background box */
-  animation: fadeInDown 0.5s;
-}
-
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-header h1 {
-  font-size: 18px;
-  font-weight: 600;
-  animation: fadeIn 0.5s 0.1s both;
-}
-
-header p {
-  font-size: 14px;
-  opacity: 0.9;
-  animation: fadeIn 0.5s 0.2s both;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Compact tabs */
-.tabs {
-  display: flex;
-  border-bottom: 1px solid var(--border-color);
-  position: relative;
-  background: white;
-  z-index: 50;
-  box-shadow: var(--shadow-sm);
-  height: auto;
-  max-height: 60px;
-  isolation: isolate; /* Create a new stacking context */
-  flex-shrink: 0;
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 12px 8px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--light-text);
-  position: relative;
-  z-index: 51;
-  transition: color var(--animation-duration);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  pointer-events: auto !important; /* Force pointer events */
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.tab-icon {
-  width: 18px;
-  height: 18px;
-  opacity: 0.7;
-  transition: opacity var(--animation-duration), transform var(--animation-duration);
-}
-
-.tab-btn.active {
-  color: var(--primary-color);
-}
-
-.tab-btn.active .tab-icon {
-  opacity: 1;
-  transform: translateY(-2px);
-}
-
-/* Options */
-.option {
-  display: none;
-  height: 100%;
-  animation: fadeIn 0.3s;
-  position: relative;
-  z-index: 10;
-  width: 100%;
-}
-
-.option.active {
-  display: block;
-  flex-direction: column;
-  height: auto;
-  min-height: 0;
-  overflow-y: visible;
-  flex: 1;
-  position: relative;
-  z-index: 5; /* Lower than tabs */
-  pointer-events: auto; /* Ensure clicks work */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  width: 100%;
-}
-
-.option.active::-webkit-scrollbar {
-  display: none;
-}
-
-/* Optimize the option-content layout to make sections consistent */
-.option-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: var(--space-1); /* Reduced from var(--space-2) */
-  padding: var(--space-2);
-  width: 100%;
-  height: auto;
-  overflow: visible;
-  position: relative;
-  z-index: 5;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  padding: var(--space-3); /* Reduced from var(--space-4) */
-  transition: all 0.3s ease;
-}
-
-.option-content:hover {
-  box-shadow: var(--shadow-md);
-}
-
-/* Make QR sections consistent across all payment methods */
-.qr-section {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin: var(--space-1) 0; /* Reduced from var(--space-2) */
-  perspective: 1000px;
-  position: relative;
-  z-index: 5;
-}
-
-/* Create scrollable sections with consistent sizes */
+/* Wallet Address Section */
 .wallet-address {
+  margin-top: 12px;
   width: 100%;
-  margin: var(--space-1) 0; /* Reduced from var(--space-2) */
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-/* Make referral sections appear below scroll point */
-.referral-section {
-  width: 100%;
-  margin-top: 20px; /* Reduced from 40px */
-  padding-top: 6px; /* Reduced from 10px */
-  border-top: 1px dashed var(--border-color);
-  /* Add space to ensure it appears below initial view */
-  margin-bottom: 15px; /* Reduced from 30px */
-}
-
-/* Make payment headers more consistent */
-.payment-header {
-  width: 100%;
-  text-align: center;
-  margin: 3px 0;  /* Reduced from 5px */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;  /* Reduced from 4px */
-}
-
-.option-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;  /* Reduced from 12px */
-  padding-bottom: 5px;
-}
-
-.payment-header {
-  width: 100%;
-  text-align: center;
-  margin-bottom: 5px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-}
-
-.payment-logo {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: white;
-  padding: 4px;
-  box-shadow: var(--shadow-sm);
-}
-
-.payment-header h3 {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-.qr-section {
-  display: flex;
-  justify-content: center;
-  margin: 0;
-  perspective: 1000px;
-}
-
-/* Wallet address container with ellipsis for long addresses */
-.wallet-address {
-  width: 100%;
-  margin-top: 0;
-  margin-bottom: 8px;  /* Reduced from 10px */
-  max-width: 100%;
-  box-sizing: border-box;
 }
 
 .wallet-address p {
-  font-size: 14px;
-  margin-bottom: 2px;  /* Reduced from 3px */
-  color: var(--text-color);
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
-  gap: 5px;
 }
 
-.wallet-address p::before {
-  content: '';
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  background-color: var(--primary-color);
-  border-radius: 50%;
+.wallet-address p .network-icon {
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
 }
 
 .address-container {
   display: flex;
-  width: 100%;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-  max-width: min(350px, 100%);
-  margin-bottom: 0;
+  background-color: var(--gray-100);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius);
+  padding: 8px 10px;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
-/* Enhanced address container styles */
-.address-container:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
-
-code {
-  flex-grow: 1;
-  padding: 10px 12px;
-  background: #f9fafb;
+.address-container code {
+  flex: 1;
   font-family: monospace;
-  font-size: 13px;
+  font-size: 0.85rem;
+  color: var(--gray-800);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--text-color);
-  transition: background 0.2s ease;
-  min-width: 60px;
-  max-width: calc(100vw - var(--container-padding) * 2 - 60px);
-}
-
-/* Responsive address truncation */
-@media (max-width: 360px) {
-  code {
-    max-width: 180px;
-  }
-}
-
-@media (max-width: 320px) {
-  code {
-    max-width: 140px;
-  }
-}
-
-.address-container:hover code {
-  background: var(--primary-light);
+  user-select: all;
 }
 
 .copy-btn {
-  background: var(--primary-color);
-  color: white;
+  background-color: var(--primary-color);
+  color: var(--white);
   border: none;
-  padding: 0 12px;
-  cursor: pointer;
+  border-radius: var(--border-radius);
+  padding: 5px 10px;
+  font-size: 0.75rem;
   font-weight: 500;
-  font-size: 13px;
-  transition: background 0.2s ease, transform 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.copy-btn::before {
-  content: '';
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='13' height='13' rx='2' ry='2'%3E%3C/rect%3E%3Cpath d='M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1'%3E%3C/path%3E");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-left: 8px;
+  white-space: nowrap;
 }
 
 .copy-btn:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
+  background-color: var(--primary-hover);
 }
 
-.referral-section {
-  width: 100%;
-  margin-top: 20px; /* Reduced from 40px */
-  padding-top: 6px; /* Reduced from 10px */
-  border-top: 1px dashed var(--border-color);
-  /* Add space to ensure it appears below initial view */
-  margin-bottom: 15px; /* Reduced from 30px */
+.copy-btn.copy-success {
+  background-color: #10b981;
 }
 
-.referral-section p {
-  font-size: 13px;
-  color: var(--light-text);
-  margin-bottom: 5px; /* Reduced from 8px */
+/* Create Account Section */
+.create-account {
+  text-align: center;
+  margin-top: 8px;
 }
 
-.referral-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--secondary-color);
-  color: white;
-  text-decoration: none;
-  padding: 8px 16px;
-  border-radius: 8px;
+.create-account-link {
+  display: inline-block;
+  color: var(--primary-color);
+  font-size: 0.8rem;
   font-weight: 500;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow-sm), inset 0 -2px 0 rgba(0,0,0,0.1);
+  text-decoration: none;
+  transition: var(--transition);
 }
 
-.referral-icon {
+.create-account-link:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+/* Network Selector Styling */
+.network-tabs {
+  display: flex;
+  overflow-x: auto;
+  padding: 6px 0;
+  margin-bottom: 12px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.network-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.network-btn {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  margin-right: 6px;
+  background-color: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
+  font-size: 0.8rem;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.network-btn img {
   width: 16px;
   height: 16px;
-  border-radius: 50%;
-  background: white;
-  padding: 2px;
+  margin-right: 5px;
 }
 
-.referral-btn:hover {
-  background: var(--secondary-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md), inset 0 -2px 0 rgba(0,0,0,0.2);
+.network-btn:hover {
+  background-color: var(--primary-light);
+  border-color: var(--primary-light);
 }
 
-/* Enhanced USDT Network Selection with icons */
+.network-btn.active {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--white);
+}
+
+/* Enhanced Compact Network Selector */
 .network-tabs-compact {
-  width: 100%;
-  margin: 0 0 5px;  /* Reduced from 8px */
-}
-
-.network-select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 14px;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231f2937' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 16px;
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.network-select:hover {
-  border-color: var(--primary-color);
-}
-
-.network-select:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px var(--primary-light);
-}
-
-/* Custom styling for the select elements when using enhanced dropdown */
-.network-select-container {
   position: relative;
   width: 100%;
+  margin-bottom: 12px;
 }
 
-/* Fix dropdown menu appearance and behavior */
 .custom-select-styled {
   display: flex;
   align-items: center;
-  gap: 8px;
   padding: 8px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  background-color: var(--gray-100);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius);
   cursor: pointer;
-  background: white;
-  transition: all 0.2s ease;
-  position: relative;
-  z-index: 100;
+  user-select: none;
+  transition: all 0.2s;
 }
 
-.custom-select-styled:hover,
+.custom-select-styled:hover {
+  border-color: var(--primary-color);
+}
+
 .custom-select-styled.active {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 1px var(--primary-light);
+  box-shadow: 0 0 0 2px var(--primary-light);
 }
 
-/* Add dropdown arrow using ::after pseudo-element instead of separate element */
+.custom-select-styled img {
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+}
+
 .custom-select-styled::after {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid var(--primary-color);
-  border-bottom: 2px solid var(--primary-color);
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid var(--gray-500);
+  border-bottom: 2px solid var(--gray-500);
   transform: rotate(45deg);
-  transition: transform 0.3s ease;
   margin-left: auto;
-  display: block;
+  transition: all 0.2s;
 }
 
 .custom-select-styled.active::after {
   transform: rotate(-135deg);
 }
 
-/* Custom select options styling */
-.custom-select-options {
-  position: absolute;
-  top: calc(100% + 5px);
-  left: 0;
-  right: 0;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  max-height: 0;
-  overflow-y: hidden;
-  z-index: 200;
-  box-shadow: var(--shadow-md);
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-  display: none;
-}
-
-.custom-select-options.active {
-  max-height: 300px;
-  overflow-y: auto;
-  opacity: 1;
-  visibility: visible;
-  display: block;
-}
-
-/* Network option styling */
-.custom-option {
-  padding: 8px 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: background-color 0.2s ease;
-}
-
-.custom-option:hover {
-  background-color: var(--primary-light);
-}
-
-.custom-option.selected {
-  background-color: var(--primary-light);
-  font-weight: 500;
-}
-
-.custom-select-styled .network-icon {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  object-fit: contain;
-}
-
-.custom-select-options {
-  position: absolute;
-  top: calc(100% + 5px);
-  left: 0;
-  right: 0;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  max-height: 300px;
-  overflow-y: auto;
-  z-index: 100;
-  box-shadow: var(--shadow-md);
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
-  /* Hide scrollbar */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.custom-select-options::-webkit-scrollbar {
-  display: none;
-}
-
-.custom-select-options.active {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-  display: block !important;
-}
-
-.custom-option {
-  padding: 12px 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: all 0.2s ease;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-
-.custom-option:last-child {
-  border-bottom: none;
-}
-
-.custom-option:hover {
-  background-color: var(--primary-light);
-  transform: translateX(3px);
-}
-
-.custom-option.selected {
-  background-color: rgba(37, 99, 235, 0.1);
-  font-weight: 500;
-}
-
-.custom-option .network-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  object-fit: contain;
-  transition: transform 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.custom-option:hover .network-icon {
-  transform: scale(1.1);
-}
-
-.network-content {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  /* Prevent horizontal overflow */
-  max-width: 100%;
-  overflow-x: hidden;
-  gap: 8px;
-}
-
-/* Network label with icon */
-.wallet-address p.network-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.wallet-address p.network-label .network-icon {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  margin-left: 4px;
-}
-
-/* Improve network address display */
-.wallet-address p.network-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-}
-
-.wallet-address p.network-label .network-icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  margin-left: 4px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease;
-}
-
-.wallet-address:hover p.network-label .network-icon {
-  transform: scale(1.1);
-}
-
-/* Add loading animation for QR code */
-.qr-code.loading {
-  position: relative;
-  background-color: #f3f4f6;
-}
-
-.qr-code.loading::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
-  animation: qr-loading 1.5s infinite;
-}
-
-@keyframes qr-loading {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-/* Compact footer */
-footer {
-  padding: var(--container-padding);
-  border-top: 1px solid var(--border-color);
-  background: #f9fafb;
-  box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
-  height: auto;
-  min-height: var(--footer-height);
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  z-index: 100;
-}
-
-.footer-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between; /* Changed from flex-start to space-between */
-  width: 100%; /* Take full width */
-  visibility: visible;
-}
-
-.footer-left {
-  flex: 0 0 auto; /* Don't grow or shrink, stay at auto width */
-  display: flex !important; /* Ensure display */
-  align-items: center;
-  visibility: visible !important; /* Ensure visibility */
-}
-
-.footer-center {
-  flex: 1 1 auto; /* Can grow and shrink */
-  text-align: center; /* Center the text */
-  display: flex;
-  justify-content: center;
-}
-
-.footer-right {
-  flex: 0 0 auto; /* Don't grow or shrink, stay at auto width */
-}
-
-.thank-you {
-  color: var(--text-color);
-  font-weight: 500;
-  font-size: 14px;
-  margin: 0;
-}
-
-.back-btn {
-  background: transparent;
-  border: none;
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex !important; /* Force display with !important */
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  color: var(--light-text);
-  padding: 0;
-  visibility: visible !important; /* Ensure visibility */
-  opacity: 1 !important; /* Ensure opacity */
-}
-
-.back-btn:hover {
-  background-color: rgba(0,0,0,0.05);
-  color: var(--primary-color);
-  transform: translateX(-2px);
-}
-
-.back-btn svg {
-  width: 20px;
-  height: 20px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2px;
-  display: block; /* Ensure the SVG is displayed as block */
-}
-
-/* Heart link styling in footer */
-.heart-link {
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.3s ease;
-  cursor: pointer;
-}
-
-.heart-link:hover {
-  transform: scale(1.2);
-}
-
-.heart-link:focus {
-  outline: none;
-}
-
-.heart-beat {
-  display: inline-block;
-  animation: heartbeat 1.5s infinite;
-  cursor: pointer;
-}
-
-/* Make heart more noticeable as a clickable element */
-.heart-beat:hover {
-  filter: drop-shadow(0 0 2px rgba(255, 0, 0, 0.5));
-}
-
-@keyframes heartbeat {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-/* Enhanced heart button styles */
-.heart-btn {
-  background: none;
-  border: none;
-  padding: 4px 6px;
-  margin: 0;
-  cursor: pointer !important;
-  font-size: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  position: relative;
-  z-index: 10;
-  outline: none;
-  animation: heartbeat 1.5s infinite;
-  transition: transform 0.3s ease, filter 0.3s ease, background-color 0.3s ease;
-}
-
-.heart-btn:hover, .heart-btn:focus {
-  transform: scale(1.3);
-  filter: drop-shadow(0 0 3px rgba(255, 0, 0, 0.6));
-  background-color: rgba(255, 0, 0, 0.1);
-}
-
-.heart-btn:active {
-  transform: scale(0.95);
-}
-
-/* GitHub button styling */
-.github-btn {
-  background: none;
-  border: none;
-  padding: 4px 6px;
-  margin: 0;
-  cursor: pointer !important;
-  font-size: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  position: relative;
-  z-index: 10;
-  outline: none;
-  transition: transform 0.3s ease, filter 0.3s ease, background-color 0.3s ease;
-  color: var(--light-text);
-}
-
-.github-btn svg {
-  transition: transform 0.3s ease;
-}
-
-.github-btn:hover, .github-btn:focus {
-  transform: scale(1.2);
-  background-color: rgba(0, 0, 0, 0.1);
-  color: var(--primary-color);
-}
-
-.github-btn:active {
-  transform: scale(0.95);
-}
-
-/* Fix for IE and Edge */
-@supports (-ms-ime-align: auto) {
-  .tab-btn {
-    position: relative;
-    z-index: 1000;
-  }
-}
-
-.footer-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between; /* Changed from flex-start to space-between */
-  width: 100%; /* Take full width */
-}
-
-.footer-left {
-  flex: 0 0 auto; /* Don't grow or shrink, stay at auto width */
-}
-
-.footer-center {
-  flex: 1 1 auto; /* Can grow and shrink */
-  text-align: center; /* Center the text */
-  display: flex;
-  justify-content: center;
-}
-
-.footer-right {
-  flex: 0 0 auto; /* Don't grow or shrink, stay at auto width */
-}
-
-.thank-you {
-  color: var(--text-color);
-  font-weight: 500;
-  font-size: 14px;
-  margin: 0;
-}
-
-.back-btn {
-  background: transparent;
-  border: none;
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  color: var(--light-text);
-  padding: 0;
-}
-
-.back-btn:hover {
-  background-color: rgba(0,0,0,0.05);
-  color: var(--primary-color);
-  transform: translateX(-2px);
-}
-
-.back-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
-/* Heart link styling in footer */
-.heart-link {
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.3s ease;
-  cursor: pointer;
-}
-
-.heart-link:hover {
-  transform: scale(1.2);
-}
-
-.heart-link:focus {
-  outline: none;
-}
-
-.heart-beat {
-  display: inline-block;
-  animation: heartbeat 1.5s infinite;
-  cursor: pointer;
-}
-
-/* Make heart more noticeable as a clickable element */
-.heart-beat:hover {
-  filter: drop-shadow(0 0 2px rgba(255, 0, 0, 0.5));
-}
-
-@keyframes heartbeat {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-/* Enhanced heart button styles */
-.heart-btn {
-  background: none;
-  border: none;
-  padding: 4px 6px;
-  margin: 0;
-  cursor: pointer !important;
-  font-size: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  position: relative;
-  z-index: 10;
-  outline: none;
-  animation: heartbeat 1.5s infinite;
-  transition: transform 0.3s ease, filter 0.3s ease, background-color 0.3s ease;
-}
-
-.heart-btn:hover, .heart-btn:focus {
-  transform: scale(1.3);
-  filter: drop-shadow(0 0 3px rgba(255, 0, 0, 0.6));
-  background-color: rgba(255, 0, 0, 0.1);
-}
-
-.heart-btn:active {
-  transform: scale(0.95);
-}
-
-/* Responsive Adjustments */
-@media (max-height: 500px) {
-  .qr-container {
-    width: 160px;
-    height: 160px;
-  }
-  
-  header {
-    padding: 10px;
-  }
-  
-  .logo img {
-    width: 24px;
-    height: 24px;
-  }
-  
-  header h1 {
-    font-size: 16px;
-  }
-  
-  .donation-options {
-    padding: 10px;
-  }
-  
-  footer {
-    padding: 10px;
-  }
-  
-  code {
-    font-size: 12px;
-    padding: 8px 10px;
-  }
-}
-
-/* Ultra Compact Mode */
-@media (max-height: 400px) {
-  .qr-container {
-    width: 130px;
-    height: 130px;
-  }
-  
-  .option-content {
-    gap: 8px;
-  }
-  
-  .tab-btn {
-    padding: 8px;
-  }
-  
-  .tab-icon {
-    width: 16px;
-    height: 16px;
-  }
-  
-  .payment-header h3 {
-    font-size: 14px;
-  }
-  
-  code {
-    font-size: 11px;
-    padding: 6px 8px;
-    max-width: 150px;
-  }
-  
-  .wallet-address p {
-    font-size: 12px;
-  }
-}
-
-/* Responsive Adjustments for better fit */
-@media (max-height: 600px) {
-  .qr-container {
-    width: 220px;
-    height: 220px;
-  }
-}
-
-@media (max-height: 550px) {
-  .qr-container {
-    width: 200px;
-    height: 200px;
-  }
-}
-
-@media (max-height: 500px) {
-  .qr-container {
-    width: 180px;
-    height: 180px;
-  }
-  
-  .donation-options {
-    padding: 8px 12px;
-  }
-  
-  .option-content {
-    gap: 8px;
-  }
-}
-
-@media (max-height: 450px) {
-  .qr-container {
-    width: 150px;
-    height: 150px;
-  }
-}
-
-/* Always ensure the address is visible without scrolling */
-.option-content {
-  min-height: calc(100vh - 160px); /* Subtract header, tabs, and footer height */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Create better layout with address always visible */
-.option-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-/* Animations */
-@keyframes slideIn {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.option-content > * {
-  animation: slideIn 0.3s both;
-}
-
-.option-content > *:nth-child(1) { animation-delay: 0.05s; }
-.option-content > *:nth-child(2) { animation-delay: 0.1s; }
-.option-content > *:nth-child(3) { animation-delay: 0.15s; }
-.option-content > *:nth-child(4) { animation-delay: 0.2s; }
-
-/* Fix alignment for Binance Pay and Redotpay sections */
-#binance-tab .option-content,
-#redotpay-tab .option-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  width: 100%;
-}
-
-/* Center QR sections for Binance and Redotpay */
-#binance-tab .qr-section,
-#redotpay-tab .qr-section {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-}
-
-/* Center wallet address sections */
-#binance-tab .wallet-address,
-#redotpay-tab .wallet-address {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-/* Make address container consistent with USDT */
-#binance-tab .address-container,
-#redotpay-tab .address-container {
-  width: 100%;
-  max-width: 310px;
-  margin: 0 auto;
-}
-
-/* Center referral sections */
-#binance-tab .referral-section,
-#redotpay-tab .referral-section {
-  width: 100%;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Consistent styling for p elements inside wallet address */
-#binance-tab .wallet-address p,
-#redotpay-tab .wallet-address p {
-  align-self: flex-start;
-  margin-bottom: 8px;
-}
-
-/* Make all payment headers centered */
-.payment-header {
-  width: 100%;
-  text-align: center;
-  margin: 10px auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-/* Remove multiple layout declarations */
-.option-content {
-  /* Remove duplicate grid definitions that create extra space */
-  min-height: 0;
-}
-
-/* Optimize overall spacing for tabs */
-#binance-tab .option-content,
-#redotpay-tab .option-content,
-#usdt-tab .option-content {
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
-/* Create a truly modular fluid layout */
-.container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  background: var(--card-background);
-  overflow-x: hidden;
-  max-width: 100%;
-}
-
-/* Fluid donation options container */
-.donation-options {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: var(--container-padding);
-  display: flex;
-  flex-direction: column;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-/* Make each tab option fully fluid */
-.option.active {
-  display: flex;
-  flex-direction: column;
-  height: auto;
-  min-height: 0;
-  overflow-y: visible;
-  flex: 1;
-}
-
-/* Make option content fully responsive */
-.option-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: var(--space-1); /* Reduced from var(--space-2) */
-  padding: var(--space-2);
-  width: 100%;
-  height: auto;
-  overflow: visible;
-  position: relative;
-  z-index: 5;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  padding: var(--space-3); /* Reduced from var(--space-4) */
-  transition: all 0.3s ease;
-}
-
-/* Responsive QR section */
-.qr-section {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin: var(--space-1) 0; /* Reduced from var(--space-2) */
-  perspective: 1000px;
-  position: relative;
-  z-index: 5;
-}
-
-/* Responsive QR container that scales with viewport */
-.qr-container {
-  width: var(--qr-size);
-  height: var(--qr-size); 
-  position: relative;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-  background: white;
-  margin: 0 auto;
-}
-
-/* Responsive wallet address section */
-.wallet-address {
-  width: 100%;
-  margin: var(--space-1) 0; /* Reduced from var(--space-2) */
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-/* Make the address container responsive */
-.address-container {
-  display: flex;
-  width: 100%;
-  max-width: min(350px, 100%);
-  margin: 0 auto;
-  border-radius: var(--radius-md);
-}
-
-/* Consistent padding in all layouts */
-header {
-  padding: var(--container-padding);
-}
-
-.tabs {
-  height: auto;
-  min-height: var(--tabs-height);
-}
-
-footer {
-  padding: var(--container-padding);
-  height: auto;
-  min-height: var(--footer-height);
-}
-
-/* Create a flex layout that adjusts automatically to any size */
-@media (min-width: 600px) {
-  /* For larger screens, create a more spacious layout */
-  .option-content {
-    gap: var(--space-4);
-    padding: var(--space-4);
-  }
-  
-  .qr-container {
-    /* Slightly larger QR on big screens but still proportional */
-    --qr-size: clamp(200px, 45vmin, 280px);
-  }
-}
-
-/* For extremely small screens */
-@media (max-width: 300px), (max-height: 400px) {
-  /* Ensure content fits in tiny screens */
-  :root {
-    /* Smaller QR for tiny screens */
-    --qr-size: clamp(120px, 35vmin, 160px);
-  }
-  
-  .tab-btn {
-    padding: var(--space-1) var(--space-2);
-  }
-  
-  .payment-header h3 {
-    font-size: var(--font-size-xs);
-  }
-  
-  .wallet-address p {
-    font-size: var(--font-size-xs);
-  }
-  
-  code {
-    font-size: var(--font-size-xs);
-    padding: var(--space-1) var(--space-2);
-  }
-  
-  .copy-btn {
-    padding: 0 var(--space-2);
-    font-size: var(--font-size-xs);
-  }
-}
-
-/* Instead of using pixel-specific media queries, use container queries by checking for height ratios */
-@container (aspect-ratio < 0.8) {
-  /* Adjustments for tall narrow containers */
-  .qr-container {
-    --qr-size: clamp(150px, 65vw, 230px);
-  }
-}
-
-/* A rule to dynamically adjust the address containers to prevent overflow */
-.address-container, code {
-  max-width: calc(100vw - var(--container-padding) * 2 - 60px);
-}
-
-/* Network selector styles */
-.network-selector-dropdown {
-  margin: 15px auto;
-  position: relative;
-  max-width: 100%;
-}
-
-.custom-select-styled {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  background-color: white;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  z-index: 2;
-}
-
-.custom-select-styled:hover {
-  border-color: var(--primary-color);
-}
-
-.custom-select-styled.active {
-  border-color: var(--primary-color);
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-/* Style for compact network selector - show only logo and arrow */
-.compact-network-selector {
-  justify-content: space-between;
-}
-
-.compact-network-selector #current-network-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  box-shadow: var(--shadow-sm);
-}
-
-/* Hide network name by default */
-.compact-network-selector #current-network-name {
-  display: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  margin: 0 8px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-/* Show network name on hover */
-.compact-network-selector:hover #current-network-name {
-  display: inline-block;
-  opacity: 1;
-}
-
-/* Dropdown arrow styling */
-.dropdown-arrow {
-  width: 12px;
-  height: 12px;
-  position: relative;
-  transition: transform 0.3s ease;
-}
-
-.dropdown-arrow:before {
-  content: '';
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid var(--text-color);
-  border-bottom: 2px solid var(--text-color);
-  transform: rotate(45deg);
-  top: 0;
-}
-
-.dropdown-arrow.rotated {
-  transform: rotate(180deg);
-}
-
-/* When dropdown is active, always show network name */
-.custom-select-styled.active #current-network-name {
-  display: inline-block;
-  opacity: 1;
-}
-
-/* Network name display in address label */
-.network-label {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-#network-name-display {
-  margin: 0 4px;
-  font-weight: 500;
-}
-
-/* Responsive adjustments for different screen sizes */
-@media (max-width: 480px) {
-  .network-label {
-    font-size: 14px;
-  }
-  
-  #network-name-display {
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 360px) {
-  .network-label {
-    font-size: 13px;
-  }
-  
-  #network-name-display {
-    font-size: 13px;
-  }
-  
-  .custom-select-styled {
-    padding: 6px 10px;
-  }
-}
-
-/* Payment method themed backgrounds with semi-transparent logos */
-/* Binance - Yellow theme */
-#binance-tab .option-content {
-  background-color: rgba(246, 218, 88, 0.1); /* Very light Binance yellow background */
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 80%;
-  background-blend-mode: soft-light;
-  position: relative;
-}
-
-#binance-tab .option-content::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url('assets/binance.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 80%;
-  opacity: 0.05; /* Very transparent logo */
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* RedotPay - Red theme */
-#redotpay-tab .option-content {
-  background-color: rgba(230, 66, 54, 0.05); /* Very light RedotPay red background */
-  position: relative;
-}
-
-#redotpay-tab .option-content::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url('assets/RedotPay.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 80%;
-  opacity: 0.05; /* Very transparent logo */
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* USDT - Green theme */
-#usdt-tab .option-content {
-  background-color: rgba(38, 161, 123, 0.05); /* Very light USDT green background */
-  position: relative;
-}
-
-#usdt-tab .option-content::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url('assets/usdt.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 60%;
-  opacity: 0.05; /* Very transparent logo */
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* Ensuring all content appears above the background images */
-.payment-header, .qr-section, .wallet-address, .network-selector-dropdown, .network-content, .referral-section {
-  position: relative;
-  z-index: 1;
-}
-
-/* Round the corners of the payment sections */
-.option-content {
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  padding: var(--space-3); /* Reduced from var(--space-4) */
-  transition: all 0.3s ease;
-}
-
-.option-content:hover {
-  box-shadow: var(--shadow-md);
-}
-
-/* USDT Header with network selector on the left */
-.usdt-header-wrapper {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-bottom: 15px;
-  gap: 10px;
-}
-
-.usdt-header-wrapper .payment-header {
-  margin: 0;
-  text-align: left;
-  flex-grow: 1;
-}
-
-.usdt-header-wrapper .network-selector-dropdown {
-  margin: 0;
-  width: auto;
-  min-width: 40px;
-}
-
-/* Compact network selector that only shows the icon initially */
-.compact-network-selector {
-  padding: 8px;
-  min-width: 40px;
-  max-width: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.compact-network-selector .network-icon {
-  width: 24px;
-  height: 24px;
-  margin-right: 0;
-}
-
-.compact-network-selector #current-network-name {
-  display: none;
-  max-width: 0;
-  opacity: 0;
-  transition: all 0.3s ease;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-/* Show name on hover or when active */
-.compact-network-selector:hover,
-.compact-network-selector.active {
-  max-width: 180px;
-  width: auto;
-  min-width: 120px;
-  padding: 8px 12px;
-}
-
-.compact-network-selector:hover .network-icon,
-.compact-network-selector.active .network-icon {
-  margin-right: 8px;
-}
-
-.compact-network-selector:hover #current-network-name,
-.compact-network-selector.active #current-network-name {
-  display: inline-block;
-  max-width: 120px;
-  opacity: 1;
-}
-
-/* Custom dropdown styling */
-.custom-select-styled {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 6px 10px;
-  background: var(--card-background);
-  position: relative;
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow-sm);
-}
-
-.custom-select-styled:hover {
-  border-color: var(--primary-color);
-  box-shadow: var(--shadow-md);
-}
-
-.custom-select-styled.active {
-  border-color: var (--primary-color);
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  box-shadow: var(--shadow-md);
-}
-
-/* Dropdown arrow styling */
-.dropdown-arrow {
-  margin-left: 8px;
-  font-size: 12px;
-  transition: transform 0.3s ease;
-  display: inline-block;
-  color: var(--light-text);
-  position: relative;
-  width: 12px;
-  height: 12px;
-}
-
-/* Create a custom arrow instead of using the text symbol */
-.dropdown-arrow::before {
-  content: '';
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid var(--primary-color);
-  border-bottom: 2px solid var(--primary-color);
-  transform: rotate(45deg);
-  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-}
-
-/* Show network names with all details in dropdown options */
-.custom-select-options .custom-option span {
-  display: inline-block;
-  opacity: 1;
-  max-width: 150px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Ensure dropdown is properly positioned */
-.usdt-header-wrapper .custom-select-options {
-  min-width: 160px;
-  right: 0;
-  left: auto;
-  z-index: 100; /* Higher z-index to ensure it appears above QR code */
-  position: absolute;
-}
-
-/* Remove margin from network selector in header */
-.usdt-header-wrapper .network-selector-dropdown {
-  margin: 0;
-}
-
-/* USDT Header with network selector on the right */
-.usdt-header-wrapper {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 15px;
-  gap: 10px;
-  position: relative; /* Create stacking context */
-  z-index: 10; /* Ensure header and dropdown stay above other elements */
-}
-
-.usdt-header-wrapper .payment-header {
-  margin: 0;
-  text-align: left;
-  flex-grow: 1;
-}
-
-.usdt-header-wrapper .network-selector-dropdown {
-  margin: 0;
-  width: auto;
-  min-width: 40px;
-  position: relative; /* Create stacking context for dropdown */
-}
-
-/* Compact network selector that only shows the icon initially */
-.compact-network-selector {
-  padding: 8px;
-  min-width: 40px;
-  max-width: 40px;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.compact-network-selector:hover, 
-.compact-network-selector.active {
-  max-width: none;
-  min-width: 130px;
-  padding: 8px 12px;
-}
-
-.compact-network-selector:hover #current-network-name,
-.compact-network-selector.active #current-network-name {
-  display: inline-block;
-  opacity: 1;
-  max-width: 150px;
-  margin-left: 8px;
-}
-
-/* Hide network name initially */
-.hidden-name {
-  display: none;
-  opacity: 0;
-  max-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  transition: all 0.3s ease;
-}
-
-/* Show network names with all details in dropdown options */
-.custom-select-options .custom-option span {
-  display: inline-block;
-  opacity: 1;
-  max-width: 150px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Ensure dropdown is properly positioned */
-.usdt-header-wrapper .custom-select-options {
-  min-width: 160px;
-  right: 0;
-  left: auto;
-  z-index: 100; /* Higher z-index to ensure it appears above QR code */
-  position: absolute;
-}
-
-.custom-select-styled.active {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px var(--primary-light);
-}
-
-.network-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  object-fit: contain;
-  background: white;
-  box-shadow: var(--shadow-sm);
-}
-
-.custom-select-styled span {
-  flex: 1;
-  text-align: left;
-  font-size: var(--font-size-sm);
-  color: var(--text-color);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: all var(--animation-duration) ease;
-}
-
-/* Enhanced dropdown arrow */
-.dropdown-arrow {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  color: var(--primary-color);
-  font-size: 12px;
-  transition: transform var(--animation-duration) ease;
-  background-color: var(--primary-light);
-  border-radius: 50%;
-  padding: 2px;
-  margin-left: 5px;
-  box-shadow: var(--shadow-sm);
-}
-
-/* Rotate arrow when dropdown is expanded */
-.custom-select-styled.active .dropdown-arrow {
-  transform: rotate(180deg);
-}
-
-/* Subtle arrow bounce animation on hover */
-.custom-select-styled:hover .dropdown-arrow {
-  animation: arrowBounce 1s infinite;
-}
-
-@keyframes arrowBounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-2px);
-  }
-}
-
-.custom-select-styled.active:hover .dropdown-arrow {
-  animation: arrowBounceReverse 1s infinite;
-}
-
-@keyframes arrowBounceReverse {
-  0%, 100% {
-    transform: rotate(180deg) translateY(0);
-  }
-  50% {
-    transform: rotate(180deg) translateY(-2px);
-  }
-}
-
-.hidden-name {
-  max-width: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
 .custom-select-options {
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
-  background: var(--card-background);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  margin-top: 5px;
-  padding: 0;
+  background: var(--white);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
   max-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
   opacity: 0;
-  transition: all var(--animation-duration) ease;
-  box-shadow: var(--shadow-md);
-  z-index: 30;
-  pointer-events: none;
+  z-index: 1000;
+  transition: all 0.2s;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-400) var(--gray-200);
 }
 
 .custom-select-options.active {
-  max-height: 250px;
-  overflow-y: auto;
-  padding: 5px 0;
+  max-height: 180px;
   opacity: 1;
-  pointer-events: auto;
 }
 
-.custom-option {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: background var(--animation-duration) ease;
-  gap: 10px;
-}
-
-.custom-option:hover {
-  background: var (--primary-light);
-}
-
-.custom-option.selected {
-  background: var(--primary-light);
-  font-weight: 500;
-}
-
-/* Scrollbar for network options */
 .custom-select-options::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .custom-select-options::-webkit-scrollbar-track {
-  background: var(--background);
-  border-radius: 10px;
+  background: var(--gray-200);
+  border-radius: 2px;
 }
 
 .custom-select-options::-webkit-scrollbar-thumb {
-  background: var(--primary-color);
-  border-radius: 10px;
+  background-color: var(--gray-400);
+  border-radius: 2px;
 }
 
-.custom-option span {
-  flex: 1;
-  text-align: left;
-  font-size: var(--font-size-sm);
-  color: var(--text-color);
-}
-
-/* Compact network selector specific styles */
-.compact-network-selector {
-  min-width: 100px;
-  max-width: 250px;
-  margin: 0 auto;
-}
-
-/* USDT header wrapper for flex layout */
-.usdt-header-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-@media (min-width: 768px) {
-  .usdt-header-wrapper {
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 16px;
-  }
-  
-  .network-selector-dropdown {
-    margin: 0;
-  }
-}
-
-/* Network content section */
-.network-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  gap: 10px;
-}
-
-.network-label {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: var(--font-size-sm);
-}
-
-.network-label .network-icon {
-  width: 18px;
-  height: 18px;
-  margin-left: 5px;
-}
-
-/* QR code loading animation */
-.qr-code.loading {
-  opacity: 0.5;
-  filter: blur(2px);
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-/* Dropdown arrow animation and styling */
-.dropdown-arrow {
-  margin-left: 8px;
-  font-size: 12px;
-  transition: transform 0.3s ease;
-  display: inline-block;
-  color: var(--light-text);
-  position: relative;
-  width: 12px;
-  height: 12px;
-}
-
-/* Create a custom arrow instead of using the text symbol */
-.dropdown-arrow::before {
-  content: '';
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid var(--primary-color);
-  border-bottom: 2px solid var(--primary-color);
-  transform: rotate(45deg);
-  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-}
-
-/* Rotate animation when dropdown is open */
-.dropdown-arrow.rotated::before {
-  transform: rotate(225deg);
-}
-
-/* Animated bounce effect for the dropdown arrow */
-@keyframes bounce {
-  0%, 100% {
-    transform: rotate(45deg) translateY(0);
-  }
-  50% {
-    transform: rotate(45deg) translateY(2px);
-  }
-}
-
-/* Apply bounce animation on hover */
-.custom-select-styled:hover .dropdown-arrow::before {
-  animation: bounce 1s infinite;
-}
-
-/* Stop bounce animation when dropdown is open */
-.custom-select-styled.active:hover .dropdown-arrow::before {
-  animation: none;
-}
-
-/* Custom dropdown styling */
-.custom-select-styled {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 6px 10px;
-  background: var(--card-background);
-  position: relative;
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow-sm);
-}
-
-.custom-select-styled:hover {
-  border-color: var(--primary-color);
-  box-shadow: var(--shadow-md);
-}
-
-.custom-select-styled.active {
-  border-color: var(--primary-color);
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  box-shadow: var(--shadow-md);
-}
-
-/* Dropdown options container */
-.custom-select-options {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: var(--card-background);
-  border: 1px solid var(--primary-color);
-  border-top: none;
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
-  box-shadow: var(--shadow-md);
-  z-index: 100;
-  max-height: 0;
-  overflow-y: auto;
-  opacity: 0;
-  transition: max-height 0.3s ease, opacity 0.2s ease;
-  pointer-events: none;
-  transform-origin: top center;
-  transform: scaleY(0);
-}
-
-.custom-select-options.active {
-  max-height: 300px;
-  opacity: 1;
-  pointer-events: auto;
-  transform: scaleY(1);
-}
-
-/* Apply a subtle hover effect on the dropdown */
-.compact-network-selector:hover {
-  background: var(--hover-bg);
-  box-shadow: var(--shadow-md);
-}
-
-/* Create Account link styles */
-.create-account {
-  margin-top: 8px;
-  text-align: center;
-}
-
-.create-account-link {
-  display: inline-block;
-  color: var(--primary-color);
-  font-size: 14px;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-
-.create-account-link:hover {
-  background-color: var(--hover-color);
-  color: var(--primary-dark);
-  text-decoration: underline;
-}
-
-/* Added for the payment header container to display header and network selector side by side */
-.payment-header-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 5px;
-}
-
-.payment-header-container .payment-header {
-  margin: 0;
-}
-
-.payment-header-container .network-tabs-compact {
-  margin: 0;
-  width: auto;
-  min-width: 145px;
-}
-
-@media (max-width: 320px) {
-  /* For very small screens, stack the elements */
-  .payment-header-container {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .payment-header-container .network-tabs-compact {
-    width: 100%;
-  }
-}
-
-/* Original payment header styles remain unchanged */
-.payment-header {
-  width: 100%;
-  text-align: center;
-  margin-bottom: 5px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-}
-
-/* Payment method themed backgrounds with responsive semi-transparent logos */
-/* Binance - Yellow theme */
-#binance-tab .option-content {
-  background-color: rgba(246, 218, 88, 0.1); /* Very light Binance yellow background */
-  position: relative;
-  overflow: hidden;
-}
-
-#binance-tab .option-content::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  height: 100%;
-  background-image: url('assets/binance.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain; /* Changed from fixed 80% to contain for better responsiveness */
-  opacity: 0.05; /* Very transparent logo */
-  z-index: 0;
-  pointer-events: none;
-  transform: translate(-50%, -50%); /* Center properly */
-  max-width: 90%; /* Limit maximum width */
-  max-height: 90%; /* Limit maximum height */
-  transition: background-size 0.3s ease; /* Smooth transition when size changes */
-}
-
-/* RedotPay - Red theme */
-#redotpay-tab .option-content {
-  background-color: rgba(230, 66, 54, 0.05); /* Very light RedotPay red background */
-  position: relative;
-  overflow: hidden;
-}
-
-#redotpay-tab .option-content::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  height: 100%;
-  background-image: url('assets/RedotPay.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain; /* Changed from fixed 80% to contain for better responsiveness */
-  opacity: 0.05; /* Very transparent logo */
-  z-index: 0;
-  pointer-events: none;
-  transform: translate(-50%, -50%); /* Center properly */
-  max-width: 90%; /* Limit maximum width */
-  max-height: 90%; /* Limit maximum height */
-  transition: background-size 0.3s ease; /* Smooth transition when size changes */
-}
-
-/* USDT - Green theme */
-#usdt-tab .option-content {
-  background-color: rgba(38, 161, 123, 0.05); /* Very light USDT green background */
-  position: relative;
-  overflow: hidden;
-}
-
-#usdt-tab .option-content::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  height: 100%;
-  background-image: url('assets/usdt.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain; /* Changed from fixed 60% to contain for better responsiveness */
-  opacity: 0.05; /* Very transparent logo */
-  z-index: 0;
-  pointer-events: none;
-  transform: translate(-50%, -50%); /* Center properly */
-  max-width: 85%; /* Limit maximum width */
-  max-height: 85%; /* Limit maximum height */
-  transition: background-size 0.3s ease; /* Smooth transition when size changes */
-}
-
-/* Responsive adjustments for background images based on screen sizes */
-/* For smaller screens */
-@media (max-width: 480px) {
-  #binance-tab .option-content::before,
-  #redotpay-tab .option-content::before,
-  #usdt-tab .option-content::before {
-    background-size: 90% auto; /* Scale down on smaller screens */
-    max-width: 95%;
-  }
-}
-
-/* For very small screens - fit completely */
-@media (max-width: 320px) {
-  #binance-tab .option-content::before,
-  #redotpay-tab .option-content::before,
-  #usdt-tab .option-content::before {
-    background-size: 80% auto; /* Scale down further on very small screens */
-    max-width: 100%;
-  }
-}
-
-/* For larger screens - make backgrounds more prominent */
-@media (min-width: 768px) {
-  #binance-tab .option-content::before,
-  #redotpay-tab .option-content::before,
-  #usdt-tab .option-content::before {
-    background-size: 70% auto; /* More prominent on larger screens */
-    max-width: 85%;
-    max-height: 85%;
-  }
-}
-
-/* For extra large screens */
-@media (min-width: 1200px) {
-  #binance-tab .option-content::before,
-  #redotpay-tab .option-content::before,
-  #usdt-tab .option-content::before {
-    background-size: 60% auto; /* More contained on very large screens */
-    max-width: 75%;
-    max-height: 75%;
-  }
-}
-
-/* Make background adapt to container height */
-.option-content {
-  min-height: 400px; /* Minimum height to ensure background has space to display */
-}
-
-@media (max-height: 600px) {
-  .option-content {
-    min-height: 300px; /* Smaller minimum height for shorter screens */
-  }
-  
-  #binance-tab .option-content::before,
-  #redotpay-tab .option-content::before,
-  #usdt-tab .option-content::before {
-    background-size: cover; /* Use cover on shorter screens to ensure visibility */
-    max-height: 100%;
-  }
-}
-
-/* Add after the dropdown-arrow styles */
-
-.dropdown-arrow.rotated {
-  transform: rotate(180deg);
-}
-
-/* Make sure dropdown options show/hide properly */
-.custom-select-options {
-  display: none;
-  position: absolute;
-  top: calc(100% + 5px);
-  left: 0;
-  right: 0;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  max-height: 300px;
-  overflow-y: auto;
-  z-index: 100;
-  box-shadow: var(--shadow-md);
-}
-
-.custom-select-options.active {
-  display: block;
-}
-
-/* Improve visibility of active network option */
-.custom-option.selected {
-  background-color: var(--primary-light);
-  font-weight: 500;
-}
-
-/* Fix for dropdown menu visibility - simplify the display logic */
-.custom-select-options {
-  position: absolute;
-  top: calc(100% + 5px);
-  left: 0;
-  right: 0;
-  background: white;
-  border-radius: 8px;
-  box-shadow: var(--shadow-md);
-  max-height: 0;
-  overflow: hidden;
-  z-index: 200; /* Higher z-index to appear above other elements */
-  transition: max-height 0.3s ease;
-  display: none; /* Hide by default */
-}
-
-/* Show dropdown when active */
-.custom-select-options.active {
-  max-height: 300px;
-  overflow-y: auto;
-  display: block; /* Show when active */
-}
-
-/* Fix dropdown arrow rotation */
-.dropdown-arrow {
-  display: inline-block;
-  margin-left: 5px;
-  transition: transform 0.3s ease;
-}
-
-.dropdown-arrow.rotated {
-  transform: rotate(180deg);
-}
-
-/* Custom select styling */
-.custom-select-styled {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  cursor: pointer;
-  background: white;
-  transition: all 0.2s ease;
-  position: relative;
-  z-index: 100;
-}
-
-.custom-select-styled:hover,
-.custom-select-styled.active {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 1px var(--primary-light);
-}
-
-/* Option styling */
 .custom-option {
-  padding: 8px 12px;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  transition: background-color 0.2s ease;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .custom-option:hover {
@@ -2736,6 +540,118 @@ footer {
 }
 
 .custom-option.selected {
-  background-color: var(--primary-light);
-  font-weight: 500;
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+.custom-option img {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+}
+
+/* Footer */
+footer {
+  background-color: var(--white);
+  padding: 8px 10px;
+  border-top: 1px solid var(--gray-200);
+  flex-shrink: 0;
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-left, .footer-right {
+  flex: 0 0 auto;
+}
+
+.footer-center {
+  flex: 1;
+  text-align: center;
+}
+
+.thank-you {
+  font-size: 0.75rem;
+  color: var(--gray-600);
+}
+
+/* Back Button */
+.back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: none;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius);
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.back-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.back-btn:hover {
+  background-color: var(--gray-100);
+  color: var(--gray-800);
+}
+
+.text-back-btn {
+  width: auto;
+  padding: 0 10px;
+}
+
+/* GitHub Button */
+.github-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: none;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius);
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.github-btn:hover {
+  background-color: var(--gray-100);
+  color: var(--gray-800);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  body:not(.light-theme) {
+    --gray-100: #1f2937;
+    --gray-200: #374151;
+    --gray-300: #4b5563;
+    --gray-400: #6b7280;
+    --gray-500: #9ca3af;
+    --gray-600: #d1d5db;
+    --gray-700: #e5e7eb;
+    --gray-800: #f3f4f6;
+    --gray-900: #f9fafb;
+    --white: #111827;
+    --black: #ffffff;
+    
+    background-color: var(--gray-100);
+    color: var(--gray-800);
+  }
+  
+  body:not(.light-theme) .qr-container {
+    background-color: var(--white);
+  }
+  
+  body:not(.light-theme) .qr-code {
+    filter: invert(1) hue-rotate(180deg);
+  }
 }

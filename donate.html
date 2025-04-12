@@ -2,13 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="format-detection" content="telephone=no">
   <title>Support LocalDrop</title>
   <link rel="stylesheet" href="donate.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Ensure popup mode is enforced at the earliest possible moment */
+    html, body {
+      width: 320px !important;
+      height: 550px !important;
+      overflow: hidden !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    body {
+      position: relative !important;
+      box-sizing: border-box !important;
+    }
+    /* Hide any fullscreen-specific elements immediately */
+    .fullscreen-only {
+      display: none !important;
+    }
+  </style>
 </head>
-<body class="popup-mode">
-  <div class="container">
+<body class="popup-mode" data-mode="popup">
+  <div class="container popup-container">
     <header>
       <div class="logo">
         <img id="extension-logo" src="assets/logo.png" alt="LocalDrop Logo">
@@ -136,7 +156,7 @@
           </div>
           
           <div class="wallet-address">
-            <p>USDT <span id="network-name-display" data-short="BEP20" data-full="Binance Smart Chain">BEP20</span> <img src="assets/network-icons/bep20.png" alt="BSC" class="network-icon" id="label-network-icon"> address:</p>
+            <p>USDT <span id="network-name-display" data-short="BEP20" data-full="Binance Smart Chain">BEP20</span> <img src="assets/network-icons/bsc.png" alt="BSC" class="network-icon" id="label-network-icon"> address:</p>
             <div class="address-container">
               <code id="network-address">0xc9A505E28D0ff4C627Bd64c62e885d7f4e94c6d5</code>
               <button class="copy-btn" data-clipboard="network-address">Copy</button>
@@ -178,5 +198,24 @@
   <!-- Load configuration BEFORE the donate.js script -->
   <script src="config.js" defer></script>
   <script src="donate.js"></script>
+  
+  <!-- Popup mode enforcement script -->
+  <script>
+    // Enforce popup mode immediately before any other scripts run
+    document.documentElement.classList.add('popup-mode');
+    document.body.classList.add('popup-mode');
+    document.body.classList.remove('full-screen-mode', 'new-tab-mode');
+    
+    // Prevent any attempts to change the display mode
+    window.addEventListener('DOMContentLoaded', function() {
+      document.body.classList.add('popup-mode');
+      document.body.classList.remove('full-screen-mode', 'new-tab-mode');
+      
+      // Force popup size
+      if (window.outerWidth > 320 || window.outerHeight > 550) {
+        window.resizeTo(320, 550);
+      }
+    });
+  </script>
 </body>
 </html>

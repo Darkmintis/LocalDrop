@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "LocalDrop",
+  "version": "1.0.0",
+  "description": "A simple donation system for Chrome extensions",
+  "icons": {
+    "16": "assets/logo.png",
+    "48": "assets/logo.png",
+    "128": "assets/logo.png"
+  },
+  "action": {
+    "default_title": "Support with donation",
+    "default_popup": "donate.html",
+    "default_icon": {
+      "16": "assets/logo.png",
+      "48": "assets/logo.png",
+      "128": "assets/logo.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "contextMenus"
+  ],
+  "host_permissions": [],
+  "web_accessible_resources": [{
+    "resources": ["donate.html", "config.js", "donate.js", "donate.css", "assets/*"],
+    "matches": ["<all_urls>"]
+  }],
+  "browser_action": {
+    "default_popup": "donate.html",
+    "default_title": "Support LocalDrop"
+  },
+  "chrome_url_overrides": {},
+  "commands": {
+    "_execute_browser_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+D",
+        "mac": "Command+Shift+D"
+      },
+      "description": "Open LocalDrop donation popup"
+    }
+  }
+}

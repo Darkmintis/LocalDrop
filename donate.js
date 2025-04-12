@@ -1,42 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // Wait a short moment to ensure config.js has been fully processed
-  setTimeout(() => {
-    // Chrome extension popup size constraints
-    const POPUP_MIN_WIDTH = 25;
-    const POPUP_MIN_HEIGHT = 25;
-    const POPUP_MAX_WIDTH = 800;
-    const POPUP_MAX_HEIGHT = 600;
-    
-    console.log("Configuration loading status:", typeof LOCAL_DROP_CONFIG !== 'undefined' ? "Found" : "Not found");
-    
-    // Load configuration
-    let config = typeof LOCAL_DROP_CONFIG !== 'undefined' ? LOCAL_DROP_CONFIG : null;
-    
-    // If config can't be found, use URL parameters as fallback (for backward compatibility)
-    if (!config) {
-      console.warn('LocalDrop: Configuration not found, using URL parameters as fallback');
-      config = getConfigFromUrlParams();
-    } else {
-      console.log('LocalDrop: Configuration loaded successfully');
-      // Log some config details to verify it's loaded properly
-      if (config.extension && config.extension.name) {
-        console.log('Extension name from config:', config.extension.name);
-      }
-    }
-    
-    // Apply display mode immediately before any other setup to avoid flickering
-    const displayMode = config?.ui?.displayMode || 'popup';
-    if (displayMode === 'new-tab') {
-      // Remove popup-mode class and add new-tab-mode class immediately
-      document.body.classList.remove('popup-mode');
-      document.body.classList.add('new-tab-mode');
-      console.log('Applied new-tab full-screen mode');
-    }
-    
-    // Map short names to internal asset file paths
-    // This allows us to use short names throughout the code but still reference files correctly
-    const networkAssetMapping = {
-      'BEP20': 'binance-smart-chain',
+  console.log('LocalDrop: Initializing donation interface');
+  
+  // Network configuration mapping
+  const networkMappings = {
+    // Icons for networks
+    iconMapping: {
+      'BEP20': 'bsc',
       'TRC20': 'tron',
       'SOL': 'solana',
       'POL': 'polygon',
@@ -48,366 +17,184 @@ document.addEventListener('DOMContentLoaded', function() {
       'APT': 'aptos',
       'XTZ': 'tezos',
       'TON': 'ton'
-    };
+    },
     
-    // Map for QR code file paths that use different naming conventions
-    const qrPathMapping = {
+    // QR code naming mapping
+    qrMapping: {
       'BEP20': 'bnb',
-      'TRC20': 'tron'
-    };
+      'TRC20': 'tron',
+      'SOL': 'solana',
+      'POL': 'polygon',
+      'OP': 'optimism',
+      'ARB': 'arbitrum',
+      'AVAX': 'avalanche',
+      'CELO': 'celo',
+      'NEAR': 'near',
+      'APT': 'aptos',
+      'XTZ': 'tezos',
+      'TON': 'ton'
+    },
     
-    // Apply configuration settings to the UI elements
-    applyConfigToUI(config);
-    
-    // Setup donation UI based on configuration
-    setupDonationUI(config);
-    
-    // Function to initialize donation UI from config
-    function setupDonationUI(config) {
-      // Configure tab navigation
-      setupTabNavigation();
-      
-      // Configure copy buttons
-      setupCopyButtons();
-      
-      // Configure the back button
-      setupBackButton();
-      
-      // Configure USDT network selector
-      setupNetworkSelector(config);
+    // Network display names
+    nameMapping: {
+      'BEP20': 'BSC',
+      'TRC20': 'TRON',
+      'SOL': 'Solana',
+      'POL': 'Polygon',
+      'OP': 'Optimism',
+      'ARB': 'Arbitrum',
+      'AVAX': 'Avalanche',
+      'CELO': 'Celo',
+      'NEAR': 'NEAR',
+      'APT': 'Aptos',
+      'XTZ': 'Tezos',
+      'TON': 'TON'
     }
-
-    // Configure USDT network selector with enhanced dropdown
-    function setupNetworkSelector(config) {
-      const networkSelector = document.getElementById('network-selector');
-      const customSelector = document.getElementById('custom-network-selector');
-      const networkOptions = document.getElementById('network-options');
-      const currentNetworkIcon = document.getElementById('current-network-icon');
-      const currentNetworkName = document.getElementById('current-network-name');
-      const networkQR = document.getElementById('network-qr');
-      const networkAddress = document.getElementById('network-address');
-      const networkNameDisplay = document.getElementById('network-name-display');
-      const labelNetworkIcon = document.getElementById('label-network-icon');
-      
-      // Debug console logs to check if elements exist
-      console.log('Custom selector element exists:', !!customSelector);
-      console.log('Network options element exists:', !!networkOptions);
-      
-      // Check display mode for network name format
-      const isFullScreenMode = document.body.classList.contains('new-tab-mode');
-      const nameAttribute = isFullScreenMode ? 'data-full' : 'data-short';
-      
-      // Update all network names based on display mode when body class changes
-      function updateAllNetworkNames() {
-        const isCurrentFullScreen = document.body.classList.contains('new-tab-mode');
-        const currentAttribute = isCurrentFullScreen ? 'data-full' : 'data-short';
-        
-        // Update current selection in dropdown
-        if (currentNetworkName) {
-          const value = currentNetworkName.getAttribute(currentAttribute);
-          if (value) {
-            currentNetworkName.textContent = value;
-          }
-        }
-        
-        // Update network name display next to address
-        if (networkNameDisplay) {
-          const value = networkNameDisplay.getAttribute(currentAttribute);
-          if (value) {
-            networkNameDisplay.textContent = value;
-          }
-        }
-        
-        // Update all options in dropdown (if they use data attributes)
-        const options = networkOptions.querySelectorAll('.custom-option span[data-short]');
-        options.forEach(span => {
-          const value = span.getAttribute(currentAttribute);
-          if (value) {
-            span.textContent = value;
-          }
-        });
-      }
-      
-      // If no configuration for USDT networks is present, use the default selector
-      if (!(config?.donationMethods?.find(m => m.id === 'usdt')?.networks)) {
-        if (networkSelector && customSelector && networkOptions) {
-          // First populate the dropdown options
-          populateNetworkOptions(networkSelector, networkOptions);
-          
-          // Toggle dropdown on click - Use a separate function to avoid scope issues
-          function toggleDropdown(e) {
-            e.stopPropagation();
-            console.log('Dropdown clicked');
-            
-            // Toggle active class on both the selector and options
-            customSelector.classList.toggle('active');
-            networkOptions.classList.toggle('active');
-          }
-          
-          // Add click event listener
-          customSelector.addEventListener('click', toggleDropdown);
-          
-          // Close dropdown when clicking outside
-          document.addEventListener('click', function(e) {
-            // Only process if dropdown is open
-            if (customSelector.classList.contains('active')) {
-              customSelector.classList.remove('active');
-              networkOptions.classList.remove('active');
-            }
-          });
-          
-          // Prevent dropdown from closing when clicking on options
-          networkOptions.addEventListener('click', function(e) {
-            e.stopPropagation();
-          });
-          
-          // Initial value setup
-          updateNetworkUI(networkSelector.value);
-        }
-      }
-      
-      // Handle network change - This function will be called when a network option is clicked
-      function handleNetworkChange(network) {
-        console.log('Network changed to:', network);
-        
-        // Update hidden select value
-        if (networkSelector) {
-          networkSelector.value = network;
-        }
-        
-        // Update UI elements
-        updateNetworkUI(network);
-        
-        // Close dropdown after selection
-        customSelector.classList.remove('active');
-        networkOptions.classList.remove('active');
-      }
-      
-      // Update UI when network changes
-      function updateNetworkUI(network) {
-        // Check current display mode again (might have changed)
-        const currentIsFullScreen = document.body.classList.contains('new-tab-mode');
-        const currentAttribute = currentIsFullScreen ? 'data-full' : 'data-short';
-        
-        // Get the selected option
-        const option = networkSelector.querySelector(`option[value="${network}"]`);
-        
-        // Get the network asset path for icons (using the mapping we created)
-        const networkAssetPath = networkAssetMapping[network] || network.toLowerCase();
-        
-        // Update the QR code image
-        if (networkQR) {
-          // Add loading class
-          networkQR.classList.add('loading');
-          
-          // Map network value to QR image path using the qrPathMapping when available
-          let qrFileName = qrPathMapping[network] || networkAssetPath;
-          let qrPath = `assets/QR/USDT ${qrFileName}.png`;
-          
-          // Set QR code source
-          networkQR.src = qrPath;
-          
-          // Remove loading class once loaded
-          networkQR.onload = function() {
-            networkQR.classList.remove('loading');
-          };
-        }
-        
-        // Update network address display
-        if (networkAddress) {
-          // Set appropriate address for each network (replace with your actual addresses)
-          const networkAddresses = {
-            'BEP20': '0xc9A505E28D0ff4C627Bd64c62e885d7f4e94c6d5',
-            'TRC20': 'TJMBEamKWPrPyxcpPMGquLntY85ZTVvqSR',
-            'SOL': 'HsCsw81JBQ9bZLMhBC1CqXwSS9LxmCqWRyiFfVeQP7CZ',
-            'POL': '0xc9A505E28D0ff4C627Bd64c62e885d7f4e94c6d5',
-            'OP': '0xc9A505E28D0ff4C627Bd64c62e885d7f4e94c6d5',
-            'ARB': '0xc9A505E28D0ff4C627Bd64c62e885d7f4e94c6d5',
-            'AVAX': '0xc9A505E28D0ff4C627Bd64c62e885d7f4e94c6d5',
-            'CELO': '0xc9A505E28D0ff4C627Bd64c62e885d7f4e94c6d5',
-            'NEAR': 'minixlab.near',
-            'APT': '0xc9a505e28d0ff4c627bd64c62e885d7f4e94c6d5e68e2dd5b61b4a5d9c25847d',
-            'XTZ': 'tz1eSHrNQgag2nGbCiYh1ksJkPJv7GAJfmCR',
-            'TON': 'UQBQfUzV__3cxJ2Uz8x_YEGv4U29Xl3aVnUUeUQp2-KXsHSF'
-          };
-          
-          // If we have config, try to get address from config instead
-          const usdtConfig = config?.donationMethods?.find(m => m.id === 'usdt');
-          if (usdtConfig && usdtConfig.networks) {
-            // Look for the network in config using its ID (now using short name)
-            const networkConfig = usdtConfig.networks.find(n => n.id === network);
-            if (networkConfig && networkConfig.address) {
-              networkAddress.textContent = networkConfig.address;
-            } else {
-              // Fallback to hardcoded addresses
-              networkAddress.textContent = networkAddresses[network] || networkAddresses['BEP20'];
-            }
-          } else {
-            // If no config, use hardcoded addresses
-            networkAddress.textContent = networkAddresses[network] || networkAddresses['BEP20'];
-          }
-        }
-        
-        // Update network name display with short or full format based on display mode
-        if (networkNameDisplay) {
-          // Update data attributes
-          if (option) {
-            networkNameDisplay.setAttribute('data-short', option.getAttribute('data-short'));
-            networkNameDisplay.setAttribute('data-full', option.getAttribute('data-full'));
-          }
-          
-          // Use the appropriate display format based on current mode
-          const displayValue = option ? option.getAttribute(currentAttribute) : network;
-          networkNameDisplay.textContent = displayValue || network;
-        }
-        
-        // Update dropdown UI elements - use dropdown option text from select
-        if (currentNetworkName) {
-          // Update data attributes
-          if (option) {
-            currentNetworkName.setAttribute('data-short', option.getAttribute('data-short'));
-            currentNetworkName.setAttribute('data-full', option.getAttribute('data-full'));
-          }
-          
-          // Use the appropriate display format based on current mode
-          const displayValue = option ? option.getAttribute(currentAttribute) : network;
-          currentNetworkName.textContent = displayValue || network;
-        }
-        
-        // Update icons - use the asset path mapping for consistent file references
-        if (currentNetworkIcon && labelNetworkIcon) {
-          // Set icon source using the asset mapping
-          const iconPath = `assets/network-icons/${networkAssetPath}.png`;
-          currentNetworkIcon.src = iconPath;
-          labelNetworkIcon.src = iconPath;
-        }
-        
-        // Update selected option in the custom dropdown
-        const options = networkOptions.querySelectorAll('.custom-option');
-        options.forEach(opt => {
-          if (opt.getAttribute('data-value') === network) {
-            opt.classList.add('selected');
-          } else {
-            opt.classList.remove('selected');
-          }
-        });
-      }
-      
-      // Populate the custom dropdown options
-      function populateNetworkOptions(selectElement, optionsContainer) {
-        if (!selectElement || !optionsContainer) return;
-        console.log('Populating network options');
-        
-        // Clear existing options
-        optionsContainer.innerHTML = '';
-        
-        // Check display mode for name format - this ensures we consistently use the right format
-        const isCurrentFullScreen = document.body.classList.contains('new-tab-mode');
-        const currentAttribute = isCurrentFullScreen ? 'data-full' : 'data-short';
-        
-        // Create and append options
-        const options = selectElement.querySelectorAll('option');
-        options.forEach(option => {
-          const value = option.value;
-          
-          // Get appropriate name based on display mode from data attributes
-          const displayValue = option.getAttribute(currentAttribute) || option.textContent;
-          
-          // Create custom option element
-          const customOption = document.createElement('div');
-          customOption.className = 'custom-option';
-          customOption.setAttribute('data-value', value);
-          
-          // Create the span with data attributes for both short and full names
-          const spanElement = document.createElement('span');
-          spanElement.setAttribute('data-short', option.getAttribute('data-short'));
-          spanElement.setAttribute('data-full', option.getAttribute('data-full'));
-          spanElement.textContent = displayValue;
-          
-          // Get the network asset path for icons using our mapping
-          const networkAssetPath = networkAssetMapping[value] || value.toLowerCase();
-          
-          // Add icon and text
-          customOption.innerHTML = `
-            <img src="assets/network-icons/${networkAssetPath}.png" alt="${displayValue}" class="network-icon">
-          `;
-          customOption.appendChild(spanElement);
-          
-          // Add selection logic with explicit function
-          customOption.addEventListener('click', function() {
-            handleNetworkChange(value);
-          });
-          
-          // Add selected class to current selection
-          if (selectElement.value === value) {
-            customOption.classList.add('selected');
-          }
-          
-          // Append to container
-          optionsContainer.appendChild(customOption);
-        });
-        
-        console.log(`Added ${options.length} network options to dropdown`);
-      }
-      
-      // Listen for display mode changes and update network names accordingly
-      const observer = new MutationObserver(mutations => {
-        mutations.forEach(mutation => {
-          if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-            updateAllNetworkNames();
-          }
-        });
-      });
-      
-      // Start observing the body element for class changes (popup-mode vs new-tab-mode)
-      observer.observe(document.body, { attributes: true });
-    }
-    
-    // ...existing code...
-    
-  }, 10); // Small delay to ensure config is loaded
+  };
   
-  // Function to initialize donation UI from config
-  function setupDonationUI(config) {
-    // Configure tab navigation
-    setupTabNavigation();
+  // ENFORCE POPUP MODE
+  // Set fixed dimensions for popup
+  enforcePopupMode();
+  
+  // Function to enforce popup mode
+  function enforcePopupMode() {
+    // Set popup dimensions
+    const POPUP_WIDTH = 320;
+    const POPUP_HEIGHT = 550;
     
-    // Configure copy buttons
-    setupCopyButtons();
+    // Force popup styling
+    document.documentElement.style.width = POPUP_WIDTH + 'px';
+    document.documentElement.style.height = POPUP_HEIGHT + 'px';
+    document.body.style.width = POPUP_WIDTH + 'px';
+    document.body.style.height = POPUP_HEIGHT + 'px';
+    document.body.style.overflow = 'hidden';
     
-    // Configure the back button
-    setupBackButton();
+    // Add popup classes
+    document.documentElement.classList.add('popup-mode');
+    document.body.classList.add('popup-mode');
+    document.body.setAttribute('data-mode', 'popup');
     
-    // Configure USDT network selector
-    setupNetworkSelector(config);
+    // Remove any non-popup classes
+    document.documentElement.classList.remove('full-page', 'new-tab-mode');
+    document.body.classList.remove('full-page', 'new-tab-mode');
+    
+    // Attempt to resize window if not in proper dimensions
+    if (window.outerWidth !== POPUP_WIDTH || window.outerHeight !== POPUP_HEIGHT) {
+      try {
+        window.resizeTo(POPUP_WIDTH, POPUP_HEIGHT);
+      } catch (e) {
+        console.warn('LocalDrop: Could not resize window', e);
+      }
+    }
   }
+  
+  // Re-enforce popup mode on window resize
+  window.addEventListener('resize', function() {
+    enforcePopupMode();
+  });
+  
+  // Prevent opening in new tab or window
+  document.addEventListener('click', function(event) {
+    // Find any link tags
+    let targetElement = event.target;
+    while (targetElement && targetElement !== document) {
+      if (targetElement.tagName === 'A' && targetElement.getAttribute('target') === '_blank') {
+        // Modify links to open in popup or current window instead
+        event.preventDefault();
+        
+        // Get the URL
+        const url = targetElement.getAttribute('href');
+        
+        // If it's an external URL, open in the current tab
+        if (url && url.startsWith('http')) {
+          chrome.tabs.create({ url: url });
+        } else {
+          // Otherwise try to keep it in the popup
+          window.location.href = url;
+        }
+      }
+      targetElement = targetElement.parentElement;
+    }
+  }, true);
 
-  // Function to apply config settings to UI elements
+  // Intercept any window.open calls
+  const originalWindowOpen = window.open;
+  window.open = function(url, name, features) {
+    // For donate-related URLs, try to keep in popup
+    if (url && (url.includes('donate') || url === 'donate.html')) {
+      return window;
+    }
+    // For external URLs, use chrome.tabs.create
+    if (url && url.startsWith('http')) {
+      chrome.tabs.create({ url: url });
+      return null;
+    }
+    // Fallback to original behavior
+    return originalWindowOpen.call(window, url, name, features);
+  };
+  
+  // Load configuration
+  let config = typeof LOCAL_DROP_CONFIG !== 'undefined' ? LOCAL_DROP_CONFIG : null;
+  
+  if (!config) {
+    console.warn('LocalDrop: Configuration not found, using defaults');
+    config = getDefaultConfig();
+  } else {
+    console.log('LocalDrop: Configuration loaded successfully');
+  }
+  
+  // Setup UI based on configuration
+  applyConfigToUI(config);
+  setupDonationUI(config);
+  
+  // HELPER FUNCTIONS
+  
+  // Default configuration when config.js isn't loaded
+  function getDefaultConfig() {
+    return {
+      extension: {
+        name: "LocalDrop",
+        logo: "assets/logo.png",
+        description: "Support the development with a donation",
+        theme: {
+          primaryColor: "#2563eb",
+          secondaryColor: "#f59e0b"
+        }
+      },
+      donationMethods: [],
+      ui: {
+        initialTab: "binance",
+        footerText: "Thank you for your support! ❤️"
+      }
+    };
+  }
+  
+  // Apply configuration to UI elements
   function applyConfigToUI(config) {
     if (!config) return;
     
-    // Update extension information
+    // Extension information
     if (config.extension) {
-      // Update extension logo
+      // Logo
       const logoElement = document.getElementById('extension-logo');
       if (logoElement && config.extension.logo) {
         logoElement.src = config.extension.logo;
       }
       
-      // Update extension name
+      // Name
       const nameElement = document.getElementById('extension-name');
       if (nameElement && config.extension.name) {
         nameElement.textContent = config.extension.name;
         document.title = `Support ${config.extension.name}`;
       }
       
-      // Update extension description
+      // Description
       const descElement = document.getElementById('extension-description');
       if (descElement && config.extension.description) {
         descElement.textContent = config.extension.description;
       }
       
-      // Apply theme colors
+      // Theme colors
       if (config.extension.theme) {
         const root = document.documentElement;
         if (config.extension.theme.primaryColor) {
@@ -422,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
           root.style.setProperty('--secondary-light', adjustColor(config.extension.theme.secondaryColor, 40, true));
         }
         
-        // Apply header background
+        // Header background
         const header = document.querySelector('header');
         if (header && config.extension.theme.primaryColor) {
           header.style.background = `linear-gradient(135deg, ${config.extension.theme.primaryColor}, ${adjustColor(config.extension.theme.primaryColor, -20)})`;
@@ -430,9 +217,10 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     
-    // Update donation methods
-    if (config.donationMethods) {
-      // Find each donation method in the config and update the corresponding UI
+    // Donation methods
+    if (config.donationMethods && Array.isArray(config.donationMethods)) {
+      updateDonationTabs(config.donationMethods);
+      
       config.donationMethods.forEach(method => {
         switch (method.id) {
           case 'binance':
@@ -444,34 +232,21 @@ document.addEventListener('DOMContentLoaded', function() {
           case 'usdt':
             updateUSDTUI(method);
             break;
+          default:
+            updateCustomDonationMethodUI(method);
+            break;
         }
       });
     }
     
-    // Update UI settings
+    // UI settings
     if (config.ui) {
-      // Set initial active tab
+      // Initial tab
       if (config.ui.initialTab) {
-        const tabButtons = document.querySelectorAll('.tab-btn');
-        const options = document.querySelectorAll('.option');
-        
-        // Clear all active classes
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        options.forEach(opt => opt.classList.remove('active'));
-        
-        // Set the specified tab as active
-        const activeTabBtn = document.querySelector(`.tab-btn[data-tab="${config.ui.initialTab}"]`);
-        if (activeTabBtn) {
-          activeTabBtn.classList.add('active');
-          const tabId = activeTabBtn.getAttribute('data-tab') + '-tab';
-          const activeTab = document.getElementById(tabId);
-          if (activeTab) {
-            activeTab.classList.add('active');
-          }
-        }
+        setActiveTab(config.ui.initialTab);
       }
       
-      // Update footer text
+      // Footer text
       if (config.ui.footerText) {
         const thankYouElement = document.querySelector('.thank-you');
         if (thankYouElement) {
@@ -479,291 +254,86 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
       
-      // Update back button text
-      if (config.ui.backButtonText) {
+      // Back button text
+      if (config.ui.backButtonText !== undefined) {
         const backBtn = document.getElementById('back-btn');
-        if (backBtn) {
-          // If backButtonText is provided, replace icon with text
-          if (config.ui.backButtonText.trim() !== '') {
-            backBtn.innerHTML = config.ui.backButtonText;
-            backBtn.classList.add('text-back-btn');
-          }
+        if (backBtn && config.ui.backButtonText.trim() !== '') {
+          backBtn.innerHTML = config.ui.backButtonText;
+          backBtn.classList.add('text-back-btn');
         }
       }
     }
   }
   
-  // Helper functions for updating specific donation method UIs
-  function updateBinancePayUI(methodConfig) {
-    // Update Binance Pay QR code
-    if (methodConfig.qrCode) {
-      const qrElement = document.querySelector('#binance-tab .qr-code');
-      if (qrElement) {
-        qrElement.src = methodConfig.qrCode;
-      }
-    }
+  // Set active tab
+  function setActiveTab(tabId) {
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const options = document.querySelectorAll('.option');
     
-    // Update logo
-    if (methodConfig.logo) {
-      const logoElement = document.querySelector('#binance-tab .payment-header img');
-      if (logoElement) {
-        logoElement.src = methodConfig.logo;
-      }
-    }
-    
-    // Update address label
-    if (methodConfig.addressLabel) {
-      const labelElement = document.querySelector('#binance-tab .wallet-address p');
-      if (labelElement) {
-        labelElement.textContent = methodConfig.addressLabel;
-      }
-    }
-    
-    // Update address
-    if (methodConfig.address) {
-      const addressElement = document.getElementById('binanceId');
-      if (addressElement) {
-        addressElement.textContent = methodConfig.address;
-      }
-    }
-    
-    // Update referral
-    if (methodConfig.referral) {
-      const createAccountLink = document.querySelector('#binance-tab .create-account-link');
-      if (createAccountLink) {
-        if (methodConfig.referral.linkText) {
-          createAccountLink.textContent = methodConfig.referral.linkText;
-        }
-        if (methodConfig.referral.url) {
-          createAccountLink.href = methodConfig.referral.url;
-        }
-      }
-    }
-  }
-  
-  function updateRedotpayUI(methodConfig) {
-    // Update Redotpay QR code
-    if (methodConfig.qrCode) {
-      const qrElement = document.querySelector('#redotpay-tab .qr-code');
-      if (qrElement) {
-        qrElement.src = methodConfig.qrCode;
-      }
-    }
-    
-    // Update logo
-    if (methodConfig.logo) {
-      const logoElement = document.querySelector('#redotpay-tab .payment-header img');
-      if (logoElement) {
-        logoElement.src = methodConfig.logo;
-      }
-    }
-    
-    // Update address label
-    if (methodConfig.addressLabel) {
-      const labelElement = document.querySelector('#redotpay-tab .wallet-address p');
-      if (labelElement) {
-        labelElement.textContent = methodConfig.addressLabel;
-      }
-    }
-    
-    // Update address
-    if (methodConfig.address) {
-      const addressElement = document.getElementById('redotpayId');
-      if (addressElement) {
-        addressElement.textContent = methodConfig.address;
-      }
-    }
-    
-    // Update referral
-    if (methodConfig.referral) {
-      const createAccountLink = document.querySelector('#redotpay-tab .create-account-link');
-      if (createAccountLink) {
-        if (methodConfig.referral.linkText) {
-          createAccountLink.textContent = methodConfig.referral.linkText;
-        }
-        if (methodConfig.referral.url) {
-          createAccountLink.href = methodConfig.referral.url;
-        }
-      }
-    }
-  }
-  
-  function updateUSDTUI(methodConfig) {
-    // Handle USDT multi-network UI
-    if (methodConfig.isMultiNetwork && methodConfig.networks && methodConfig.networks.length > 0) {
-      // Get network selector and network options elements
-      const networkSelector = document.getElementById('network-selector');
-      const networkOptions = document.getElementById('network-options');
-      
-      if (networkSelector && networkOptions) {
-        // Clear existing options
-        networkSelector.innerHTML = '';
-        networkOptions.innerHTML = '';
-        
-        // Add new network options from config
-        methodConfig.networks.forEach(network => {
-          // Add to hidden select
-          const option = document.createElement('option');
-          option.value = network.id;
-          option.textContent = network.displayName || network.name;
-          networkSelector.appendChild(option);
-          
-          // Add to custom dropdown
-          const customOption = document.createElement('div');
-          customOption.className = 'custom-option';
-          customOption.setAttribute('data-value', network.id);
-          
-          customOption.innerHTML = `
-            <img src="assets/network-icons/${network.id}.png" alt="${network.name}" class="network-icon">
-            <span>${network.displayName || network.name}</span>
-          `;
-          
-          // Add click handler
-          customOption.addEventListener('click', function() {
-            handleNetworkChange(network.id, methodConfig.networks);
-          });
-          
-          networkOptions.appendChild(customOption);
-        });
-        
-        // Select the first network by default
-        const firstNetwork = methodConfig.networks[0];
-        if (firstNetwork) {
-          networkSelector.value = firstNetwork.id;
-          updateUSDTNetworkUI(firstNetwork);
-        }
-      }
-    }
-  }
-  
-  // Function to update USDT UI when network changes
-  function handleNetworkChange(networkId, networks) {
-    // Find the network in the config
-    const selectedNetwork = networks.find(n => n.id === networkId);
-    if (selectedNetwork) {
-      // Update hidden select value
-      const networkSelector = document.getElementById('network-selector');
-      if (networkSelector) {
-        networkSelector.value = networkId;
-      }
-      
-      // Update UI elements
-      updateUSDTNetworkUI(selectedNetwork);
-      
-      // Close dropdown after selection
-      const customSelector = document.getElementById('custom-network-selector');
-      const networkOptions = document.getElementById('network-options');
-      
-      if (customSelector && networkOptions) {
-        customSelector.classList.remove('active');
-        networkOptions.classList.remove('active');
-      }
-      
-      // Reset dropdown arrow
-      const dropdownArrow = document.querySelector('.dropdown-arrow');
-      if (dropdownArrow) {
-        dropdownArrow.classList.remove('rotated');
-      }
-    }
-  }
-  
-  // Function to update USDT UI for a specific network
-  function updateUSDTNetworkUI(network) {
-    // Update the QR code
-    const networkQR = document.getElementById('network-qr');
-    if (networkQR && network.qrCode) {
-      // Add loading class
-      networkQR.classList.add('loading');
-      
-      // Set QR code source
-      networkQR.src = network.qrCode;
-      
-      // Remove loading class once loaded
-      networkQR.onload = () => {
-        networkQR.classList.remove('loading');
-      };
-    }
-    
-    // Update the address
-    const networkAddress = document.getElementById('network-address');
-    if (networkAddress && network.address) {
-      networkAddress.textContent = network.address;
-    }
-    
-    // Update the network name display
-    const networkNameDisplay = document.getElementById('network-name-display');
-    if (networkNameDisplay) {
-      networkNameDisplay.textContent = network.name;
-    }
-    
-    // Update icons
-    const currentNetworkIcon = document.getElementById('current-network-icon');
-    const labelNetworkIcon = document.getElementById('label-network-icon');
-    
-    if (currentNetworkIcon && labelNetworkIcon) {
-      const iconPath = `assets/network-icons/${network.id}.png`;
-      currentNetworkIcon.src = iconPath;
-      labelNetworkIcon.src = iconPath;
-    }
-    
-    // Update current network name in dropdown
-    const currentNetworkName = document.getElementById('current-network-name');
-    if (currentNetworkName) {
-      currentNetworkName.textContent = network.displayName || network.name;
-    }
-    
-    // Update selected option in custom dropdown
-    const options = document.querySelectorAll('#network-options .custom-option');
+    // Clear all active classes
+    tabButtons.forEach(btn => btn.classList.remove('active'));
     options.forEach(opt => {
-      if (opt.getAttribute('data-value') === network.id) {
-        opt.classList.add('selected');
-      } else {
-        opt.classList.remove('selected');
-      }
+      opt.classList.remove('active');
+      opt.style.display = 'none';
     });
-  }
-  
-  // Function to extract configuration from URL parameters (legacy mode)
-  function getConfigFromUrlParams() {
-    // Create a default configuration
-    const defaultConfig = {
-      ui: {
-        displayMode: 'popup'
+    
+    // Set the specified tab as active
+    const activeTabBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+    if (activeTabBtn) {
+      activeTabBtn.classList.add('active');
+      const tabContentId = tabId + '-tab';
+      const activeTab = document.getElementById(tabContentId);
+      if (activeTab) {
+        activeTab.classList.add('active');
+        activeTab.style.display = 'block';
       }
-    };
-    
-    // Get URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const mode = urlParams.get('mode');
-    
-    // Override defaults with URL parameters
-    if (mode === 'tab') {
-      defaultConfig.ui.displayMode = 'new-tab';
     }
-    
-    return defaultConfig;
   }
   
-  // Configure tab navigation functionality
+  // Setup donation UI components
+  function setupDonationUI(config) {
+    setupTabNavigation();
+    setupCopyButtons();
+    setupBackButton();
+    setupNetworkSelector(config);
+  }
+  
+  // Configure tab navigation
   function setupTabNavigation() {
     const tabButtons = document.querySelectorAll('.tab-btn');
     const options = document.querySelectorAll('.option');
     
+    // Hide inactive tabs
+    options.forEach(option => {
+      if (!option.classList.contains('active')) {
+        option.style.display = 'none';
+      } else {
+        option.style.display = 'block';
+      }
+    });
+    
+    // Setup tab click handlers
     tabButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        // Remove active class from all buttons and options
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        options.forEach(opt => opt.classList.remove('active'));
-        
-        // Add active class to clicked button and corresponding option
-        button.classList.add('active');
-        const tabId = button.getAttribute('data-tab') + '-tab';
-        document.getElementById(tabId).classList.add('active');
+      const newButton = button.cloneNode(true);
+      button.parentNode.replaceChild(newButton, button);
+      
+      const targetTabId = newButton.getAttribute('data-tab');
+      
+      newButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        setActiveTab(targetTabId);
       });
     });
+    
+    // Activate first tab if none is active
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (!activeTab && tabButtons.length > 0) {
+      tabButtons[0].click();
+    }
   }
   
-  // Configure copy buttons
+  // Add copy functionality to copy buttons
   function setupCopyButtons() {
     const copyButtons = document.querySelectorAll('.copy-btn');
     
@@ -771,26 +341,23 @@ document.addEventListener('DOMContentLoaded', function() {
       button.addEventListener('click', () => {
         const clipboardId = button.getAttribute('data-clipboard');
         const contentElement = document.getElementById(clipboardId);
+        
+        if (!contentElement) return;
+        
         const textToCopy = contentElement.textContent.trim();
         
-        // Copy to clipboard
         navigator.clipboard.writeText(textToCopy)
           .then(() => {
-            // Show success state
             button.classList.add('copy-success');
             button.textContent = 'Copied!';
             
-            // Reset after 2 seconds
             setTimeout(() => {
               button.classList.remove('copy-success');
               button.textContent = 'Copy';
             }, 2000);
           })
-          .catch(err => {
-            console.error('Error copying text: ', err);
+          .catch(() => {
             button.textContent = 'Error!';
-            
-            // Reset after 2 seconds
             setTimeout(() => {
               button.textContent = 'Copy';
             }, 2000);
@@ -804,254 +371,403 @@ document.addEventListener('DOMContentLoaded', function() {
     const backButton = document.getElementById('back-btn');
     
     if (backButton) {
-      // Always make the back button visible
-      backButton.style.display = 'flex'; // Changed from 'none' to 'flex' to ensure it's visible
-      
-      // Check if running in extension context
-      if (typeof chrome !== 'undefined' && chrome.tabs) {
-        backButton.addEventListener('click', () => {
-          // Close the current popup or redirect back
-          window.history.back();
-        });
-      } else {
-        // In non-extension context, just use history.back()
-        backButton.addEventListener('click', () => {
-          window.history.back();
-        });
-      }
+      backButton.addEventListener('click', () => {
+        window.history.back();
+      });
     }
   }
   
-  // Configure USDT network selector with enhanced dropdown
+  // Configure USDT network selector
   function setupNetworkSelector(config) {
     const networkSelector = document.getElementById('network-selector');
-    const customSelector = document.getElementById('custom-network-selector');
+    let customSelector = document.getElementById('custom-network-selector');
     const networkOptions = document.getElementById('network-options');
-    const currentNetworkIcon = document.getElementById('current-network-icon');
-    const currentNetworkName = document.getElementById('current-network-name');
-    // No dropdown arrow reference - removed from HTML
-    const networkQR = document.getElementById('network-qr');
-    const networkAddress = document.getElementById('network-address');
-    const networkNameDisplay = document.getElementById('network-name-display');
-    const labelNetworkIcon = document.getElementById('label-network-icon');
     
-    // If no configuration for USDT networks is present, use the default selector
-    if (!(config?.donationMethods?.find(m => m.id === 'usdt')?.networks)) {
-      if (networkSelector && customSelector && networkOptions) {
-        populateNetworkOptions(networkSelector, networkOptions);
-        
-        // Add compact class to ensure only logo and arrow are shown
-        if (customSelector) {
-          customSelector.classList.add('compact-network-selector');
-        }
-        
-        // Toggle dropdown on click
-        customSelector.addEventListener('click', (e) => {
-          e.stopPropagation();
-          
-          const isActive = customSelector.classList.contains('active');
-          
-          // Toggle active class
-          customSelector.classList.toggle('active');
-          networkOptions.classList.toggle('active');
-          
-          // Rotate arrow when dropdown is active
-          console.log('Dropdown active:', customSelector.classList.contains('active'));
-        });
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', () => {
-          if (customSelector.classList.contains('active')) {
-            customSelector.classList.remove('active');
-            networkOptions.classList.remove('active');
-            
-            // Reset the dropdown arrow animation
-          }
-        });
-        
-        // Prevent dropdown from closing when clicking on options
-        networkOptions.addEventListener('click', (e) => {
-          e.stopPropagation();
-        });
-        
-        // Initial value setup
-        updateNetworkUI(networkSelector.value);
-      }
-    }
+    if (!networkSelector || !customSelector || !networkOptions) return;
     
-    // Handle network change
-    function handleNetworkChange(network) {
-      // Update hidden select value (for form submission)
-      if (networkSelector) {
-        networkSelector.value = network;
-      }
-      
-      // Update UI elements
-      updateNetworkUI(network);
-      
-      // Close dropdown after selection
-      customSelector.classList.remove('active');
-      networkOptions.classList.remove('active');
-      
-      // Reset dropdown arrow
-    }
+    // Replace selector to clear event listeners
+    const newCustomSelector = customSelector.cloneNode(true);
+    customSelector.parentNode.replaceChild(newCustomSelector, customSelector);
+    customSelector = newCustomSelector;
     
-    // Update UI when network changes
-    function updateNetworkUI(network) {
-      // Get network display name
-      const option = networkSelector.querySelector(`option[value="${network}"]`);
-      const networkDisplayName = option ? option.textContent : 'BSC (BEP20)';
+    // Toggle dropdown
+    customSelector.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
       
-      // Format the display name for the label
-      const shortNetworkName = network.toUpperCase();
-      
-      // Update the QR code image
-      if (networkQR) {
-        // Add loading class
-        networkQR.classList.add('loading');
+      customSelector.classList.toggle('active');
+      networkOptions.classList.toggle('active');
+    });
+    
+    // Close dropdown when clicking elsewhere
+    document.addEventListener('click', function(e) {
+      if (customSelector && !customSelector.contains(e.target) && customSelector.classList.contains('active')) {
+        customSelector.classList.remove('active');
+        networkOptions.classList.remove('active');
+      }
+    });
+    
+    // Populate network options
+    populateNetworkOptions(networkSelector, networkOptions, config);
+    
+    // Set up option click handlers
+    const options = networkOptions.querySelectorAll('.custom-option');
+    options.forEach(option => {
+      option.addEventListener('click', function() {
+        const value = this.getAttribute('data-value');
+        updateNetworkUI(value, config);
         
-        // Map network value to image path (adjust as needed)
-        let qrPath;
-        if (network === 'bep20') {
-          qrPath = 'assets/QR/USDT bnb.png';
-        } else if (network === 'trc20') {
-          qrPath = 'assets/QR/USDT tron.png';
-        } else {
-          qrPath = `assets/QR/USDT ${network}.png`;
-        }
-        
-        // Set QR code source
-        networkQR.src = qrPath;
-        
-        // Remove loading class once loaded
-        networkQR.onload = () => {
-          networkQR.classList.remove('loading');
-        };
-      }
-      
-      // Update network address display
-      if (networkAddress) {
-        // Set appropriate address for each network (replace with your actual addresses)
-        const networkAddresses = {
-          'BEP20': '0xc9A505E28D0ff4C627Bd64c62e885d7f4e94c6d5',
-          'TRC20': 'TJMBEamKWPrPyxcpPMGquLntY85ZTVvqSR',
-          'SOL': 'HsCsw81JBQ9bZLMhBC1CqXwSS9LxmCqWRyiFfVeQP7CZ',
-          'POL': '0xc9A505E28D0ff4C627Bd64c62e885d7f4e94c6d5',
-          'OP': '0xc9A505E28D0ff4C627Bd64c62e885d7f4e94c6d5',
-          'ARB': '0xc9A505E28D0ff4C627Bd64c62e885d7f4e94c6d5',
-          'AVAX': '0xc9A505E28D0ff4C627Bd64c62e885d7f4e94c6d5',
-          'CELO': '0xc9A505E28D0ff4C627Bd64c62e885d7f4e94c6d5',
-          'NEAR': 'minixlab.near',
-          'APT': '0xc9a505e28d0ff4c627bd64c62e885d7f4e94c6d5e68e2dd5b61b4a5d9c25847d',
-          'XTZ': 'tz1eSHrNQgag2nGbCiYh1ksJkPJv7GAJfmCR',
-          'TON': 'UQBQfUzV__3cxJ2Uz8x_YEGv4U29Xl3aVnUUeUQp2-KXsHSF'
-        };
-        
-        // If we have config, try to get address from config instead
-        const usdtConfig = config?.donationMethods?.find(m => m.id === 'usdt');
-        if (usdtConfig && usdtConfig.networks) {
-          const networkConfig = usdtConfig.networks.find(n => n.id === network);
-          if (networkConfig && networkConfig.address) {
-            networkAddress.textContent = networkConfig.address;
-          } else {
-            // Fallback to hardcoded addresses
-            networkAddress.textContent = networkAddresses[network] || networkAddresses['bep20'];
-          }
-        } else {
-          // If no config, use hardcoded addresses
-          networkAddress.textContent = networkAddresses[network] || networkAddresses['bep20'];
-        }
-      }
-      
-      // Update network name display
-      if (networkNameDisplay) {
-        networkNameDisplay.textContent = shortNetworkName;
-      }
-      
-      // Update dropdown UI elements
-      if (currentNetworkName) {
-        currentNetworkName.textContent = networkDisplayName;
-      }
-      
-      // Update icons
-      if (currentNetworkIcon && labelNetworkIcon) {
-        // Set icon source
-        const iconPath = `assets/network-icons/${network}.png`;
-        currentNetworkIcon.src = iconPath;
-        labelNetworkIcon.src = iconPath;
-      }
-      
-      // Update selected option in the custom dropdown
-      const options = networkOptions.querySelectorAll('.custom-option');
-      options.forEach(opt => {
-        if (opt.getAttribute('data-value') === network) {
-          opt.classList.add('selected');
-        } else {
-          opt.classList.remove('selected');
-        }
+        customSelector.classList.remove('active');
+        networkOptions.classList.remove('active');
       });
-    }
+    });
     
-    // Populate the custom dropdown options
-    function populateNetworkOptions(selectElement, optionsContainer) {
-      if (!selectElement || !optionsContainer) return;
-      
-      // Clear existing options
-      optionsContainer.innerHTML = '';
-      
-      // Create and append options
+    // Initial network UI update
+    updateNetworkUI(networkSelector.value, config);
+  }
+  
+  // Populate network options in dropdown
+  function populateNetworkOptions(selectElement, optionsContainer, config) {
+    if (!selectElement || !optionsContainer) return;
+    
+    optionsContainer.innerHTML = '';
+    
+    const usdtConfig = config?.donationMethods?.find(method => method.id === 'usdt');
+    let networks = [];
+    
+    if (usdtConfig && usdtConfig.networks && usdtConfig.networks.length > 0) {
+      networks = usdtConfig.networks.map(network => ({
+        value: network.id,
+        displayName: network.displayName || network.name
+      }));
+    } else {
       const options = selectElement.querySelectorAll('option');
-      options.forEach(option => {
-        const value = option.value;
-        const text = option.textContent;
-        
-        // Create custom option element
-        const customOption = document.createElement('div');
-        customOption.className = 'custom-option';
-        customOption.setAttribute('data-value', value);
-        
-        // Add icon and text
-        customOption.innerHTML = `
-          <img src="assets/network-icons/${value}.png" alt="${text}" class="network-icon">
-          <span>${text}</span>
-        `;
-        
-        // Add selection logic
-        customOption.addEventListener('click', () => {
-          handleNetworkChange(value);
-        });
-        
-        // Add selected class to current selection
-        if (selectElement.value === value) {
-          customOption.classList.add('selected');
+      networks = Array.from(options).map(option => ({
+        value: option.value,
+        displayName: option.textContent
+      }));
+    }
+    
+    networks.forEach(network => {
+      const value = network.value;
+      const displayName = networkMappings.nameMapping[value] || network.displayName;
+      const networkAssetPath = networkMappings.iconMapping[value] || value.toLowerCase();
+      
+      const customOption = document.createElement('div');
+      customOption.className = 'custom-option';
+      customOption.setAttribute('data-value', value);
+      
+      customOption.innerHTML = `
+        <img src="assets/network-icons/${networkAssetPath}.png" alt="${value}" class="network-icon">
+        <span>${displayName}</span>
+      `;
+      
+      optionsContainer.appendChild(customOption);
+    });
+  }
+  
+  // Update UI when network changes
+  function updateNetworkUI(network, config) {
+    if (!network) return;
+    
+    const networkIconName = networkMappings.iconMapping[network] || network.toLowerCase();
+    const networkDisplayName = networkMappings.nameMapping[network] || network;
+    
+    // Update dropdown display
+    const currentIcon = document.getElementById('current-network-icon');
+    const currentName = document.getElementById('current-network-name');
+    
+    if (currentIcon) {
+      currentIcon.src = `assets/network-icons/${networkIconName}.png`;
+      currentIcon.alt = networkDisplayName;
+    }
+    
+    if (currentName) {
+      currentName.textContent = networkDisplayName;
+    }
+    
+    // Update network name in heading
+    const nameDisplay = document.getElementById('network-name-display');
+    if (nameDisplay) {
+      nameDisplay.textContent = networkDisplayName;
+    }
+    
+    // Update icon in label
+    const labelIcon = document.getElementById('label-network-icon');
+    if (labelIcon) {
+      labelIcon.src = `assets/network-icons/${networkIconName}.png`;
+      labelIcon.alt = networkDisplayName;
+    }
+    
+    // Update QR code and address
+    const usdtConfig = config?.donationMethods?.find(method => method.id === 'usdt');
+    if (usdtConfig?.networks) {
+      const networkConfig = usdtConfig.networks.find(n => n.id === network);
+      if (networkConfig) {
+        // Update QR code
+        const networkQR = document.getElementById('network-qr');
+        if (networkQR && networkConfig.qrCode) {
+          networkQR.src = networkConfig.qrCode;
+          networkQR.alt = `${networkDisplayName} QR Code`;
         }
         
-        // Append to container
-        optionsContainer.appendChild(customOption);
-      });
+        // Update address
+        const networkAddress = document.getElementById('network-address');
+        if (networkAddress && networkConfig.address) {
+          networkAddress.textContent = networkConfig.address;
+        }
+      }
+    }
+    
+    // Update hidden selector value
+    const networkSelector = document.getElementById('network-selector');
+    if (networkSelector) {
+      networkSelector.value = network;
     }
   }
   
-  // Helper function to adjust color brightness
+  // Update Binance Pay UI
+  function updateBinancePayUI(methodConfig) {
+    if (methodConfig.qrCode) {
+      const qrElement = document.querySelector('#binance-tab .qr-code');
+      if (qrElement) qrElement.src = methodConfig.qrCode;
+    }
+    
+    if (methodConfig.address) {
+      const addressElement = document.getElementById('binanceId');
+      if (addressElement) addressElement.textContent = methodConfig.address;
+    }
+    
+    if (methodConfig.addressLabel) {
+      const labelElement = document.querySelector('#binance-tab .wallet-address p');
+      if (labelElement) labelElement.textContent = methodConfig.addressLabel;
+    }
+    
+    if (methodConfig.referral) {
+      const linkElement = document.querySelector('#binance-tab .create-account-link');
+      if (linkElement) {
+        if (methodConfig.referral.linkText) linkElement.textContent = methodConfig.referral.linkText;
+        if (methodConfig.referral.url) linkElement.href = methodConfig.referral.url;
+      }
+    }
+  }
+  
+  // Update Redotpay UI
+  function updateRedotpayUI(methodConfig) {
+    if (methodConfig.qrCode) {
+      const qrElement = document.querySelector('#redotpay-tab .qr-code');
+      if (qrElement) qrElement.src = methodConfig.qrCode;
+    }
+    
+    if (methodConfig.address) {
+      const addressElement = document.getElementById('redotpayId');
+      if (addressElement) addressElement.textContent = methodConfig.address;
+    }
+    
+    if (methodConfig.addressLabel) {
+      const labelElement = document.querySelector('#redotpay-tab .wallet-address p');
+      if (labelElement) labelElement.textContent = methodConfig.addressLabel;
+    }
+    
+    if (methodConfig.referral) {
+      const linkElement = document.querySelector('#redotpay-tab .create-account-link');
+      if (linkElement) {
+        if (methodConfig.referral.linkText) linkElement.textContent = methodConfig.referral.linkText;
+        if (methodConfig.referral.url) linkElement.href = methodConfig.referral.url;
+      }
+    }
+  }
+  
+  // Update USDT UI
+  function updateUSDTUI(methodConfig) {
+    if (methodConfig.isMultiNetwork && methodConfig.networks && methodConfig.networks.length > 0) {
+      const networkSelector = document.getElementById('network-selector');
+      
+      if (networkSelector) {
+        networkSelector.innerHTML = '';
+        
+        methodConfig.networks.forEach(network => {
+          const option = document.createElement('option');
+          option.value = network.id;
+          option.textContent = network.displayName || network.name;
+          option.setAttribute('data-qr', network.qrCode);
+          option.setAttribute('data-address', network.address);
+          networkSelector.appendChild(option);
+        });
+        
+        // Default to first network
+        const firstNetwork = methodConfig.networks[0];
+        if (firstNetwork) {
+          networkSelector.value = firstNetwork.id;
+          updateNetworkUI(firstNetwork.id, { donationMethods: [methodConfig] });
+        }
+      }
+    }
+  }
+  
+  // Update custom donation method UI
+  function updateCustomDonationMethodUI(method) {
+    console.log(`Custom donation method loaded: ${method.id}`);
+    // Implementation based on custom method requirements
+  }
+  
+  // Update donation tabs
+  function updateDonationTabs(donationMethods) {
+    if (!donationMethods || !Array.isArray(donationMethods)) return;
+    
+    const tabsContainer = document.querySelector('.tabs');
+    const donationOptionsContainer = document.querySelector('.donation-options');
+    
+    if (!tabsContainer || !donationOptionsContainer) return;
+    
+    const defaultMethodIds = ['binance', 'redotpay', 'usdt'];
+    const customMethods = donationMethods.filter(method => !defaultMethodIds.includes(method.id));
+    
+    if (customMethods.length > 0) {
+      customMethods.forEach(method => {
+        if (!document.querySelector(`.tab-btn[data-tab="${method.id}"]`)) {
+          // Create tab button
+          const tabButton = document.createElement('button');
+          tabButton.className = 'tab-btn';
+          tabButton.setAttribute('data-tab', method.id);
+          
+          tabButton.innerHTML = `
+            <img src="${method.logo || 'assets/logo.png'}" alt="${method.name}" class="tab-icon">
+            <span>${method.name}</span>
+          `;
+          tabsContainer.appendChild(tabButton);
+          
+          // Create content container
+          const optionContainer = document.createElement('div');
+          optionContainer.className = 'option';
+          optionContainer.id = `${method.id}-tab`;
+          
+          const optionContent = method.isMultiNetwork ? 
+            createMultiNetworkTabContent(method) : createStandardTabContent(method);
+          
+          optionContainer.innerHTML = optionContent;
+          donationOptionsContainer.appendChild(optionContainer);
+        }
+      });
+    }
+    
+    // Handle responsive layout for many tabs
+    const totalTabs = tabsContainer.querySelectorAll('.tab-btn').length;
+    if (totalTabs > 3) {
+      tabsContainer.classList.add('many-tabs');
+      if (totalTabs > 5) {
+        tabsContainer.classList.add('tabs-grid');
+      }
+    }
+  }
+  
+  // Create content for standard tab
+  function createStandardTabContent(method) {
+    return `
+      <div class="option-content">
+        <div class="payment-header">
+          <h3>Donate with ${method.name}</h3>
+        </div>
+        
+        <div class="qr-section">
+          <div class="qr-container">
+            <div class="qr-border"></div>
+            <img src="${method.qrCode}" alt="${method.name} QR Code" class="qr-code">
+            <div class="qr-shine"></div>
+          </div>
+        </div>
+        
+        <div class="wallet-address">
+          <p>${method.addressLabel || `${method.name} Address:`}</p>
+          <div class="address-container">
+            <code id="${method.id}Id">${method.address}</code>
+            <button class="copy-btn" data-clipboard="${method.id}Id">Copy</button>
+          </div>
+          ${method.referral ? `
+          <div class="create-account">
+            <a href="${method.referral.url}" target="_blank" class="create-account-link">
+              ${method.referral.linkText || 'Create an Account'}
+            </a>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+  
+  // Create content for multi-network tab
+  function createMultiNetworkTabContent(method) {
+    return `
+      <div class="option-content">
+        <div class="payment-header-container">
+          <div class="payment-header">
+            <h3>Donate with ${method.name}</h3>
+          </div>
+          
+          <div class="network-tabs-compact">
+            <div class="custom-select-styled" id="custom-network-selector-${method.id}">
+              <img src="assets/network-icons/bsc.png" alt="Network" class="network-icon" id="current-network-icon-${method.id}">
+              <span id="current-network-name-${method.id}">Select Network</span>
+            </div>
+            <div class="custom-select-options" id="network-options-${method.id}">
+              <!-- Options populated by JavaScript -->
+            </div>
+            <select id="network-selector-${method.id}" class="network-select" style="display: none;">
+              ${method.networks && method.networks.map(network => `
+                <option value="${network.id}" data-qr="${network.qrCode}" data-address="${network.address}">
+                  ${network.displayName || network.name}
+                </option>
+              `).join('')}
+            </select>
+          </div>
+        </div>
+        
+        <div class="qr-section">
+          <div class="qr-container">
+            <div class="qr-border"></div>
+            <img id="network-qr-${method.id}" src="${method.networks && method.networks[0] ? method.networks[0].qrCode : ''}" 
+                alt="${method.name} QR Code" class="qr-code">
+            <div class="qr-shine"></div>
+          </div>
+        </div>
+        
+        <div class="wallet-address">
+          <p>${method.name} <span id="network-name-display-${method.id}">Network</span> 
+             <img src="" alt="Network" class="network-icon" id="label-network-icon-${method.id}"> address:</p>
+          <div class="address-container">
+            <code id="network-address-${method.id}">${method.networks && method.networks[0] ? method.networks[0].address : ''}</code>
+            <button class="copy-btn" data-clipboard="network-address-${method.id}">Copy</button>
+          </div>
+          ${method.referral ? `
+          <div class="create-account">
+            <a href="${method.referral.url}" target="_blank" class="create-account-link">
+              ${method.referral.linkText || 'Create an Exchange Account'}
+            </a>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+  
+  // Adjust color brightness helper
   function adjustColor(color, percent, lighten = false) {
-    // Convert hex to RGB
+    if (!color || !color.startsWith('#')) return color;
+    
     let R = parseInt(color.substring(1, 3), 16);
     let G = parseInt(color.substring(3, 5), 16);
     let B = parseInt(color.substring(5, 7), 16);
 
     if (lighten) {
-      // Lighten color: move towards 255
       R = Math.min(255, Math.max(0, R + percent));
       G = Math.min(255, Math.max(0, G + percent));
       B = Math.min(255, Math.max(0, B + percent));
     } else {
-      // Darken/brighten: adjust by percentage
       R = Math.min(255, Math.max(0, R + percent));
       G = Math.min(255, Math.max(0, G + percent));
       B = Math.min(255, Math.max(0, B + percent));
     }
 
-    // Convert back to hex
     const RR = ((R.toString(16).length === 1) ? "0" + R.toString(16) : R.toString(16));
     const GG = ((G.toString(16).length === 1) ? "0" + G.toString(16) : G.toString(16));
     const BB = ((B.toString(16).length === 1) ? "0" + B.toString(16) : B.toString(16));

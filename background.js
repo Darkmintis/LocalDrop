@@ -1,115 +1,155 @@
-// LocalDrop Background Script
-// This script handles opening the donation page based on the display mode settings in config.js
+// LocalDrop Background Script - Popup mode enforced
+// This script handles the configuration loading, context menu functionality,
+// and automatic configuration generation
 
-// Load configuration
+// Store configuration globally
 let config = null;
 
-// Chrome extension popup size constraints
-const POPUP_MIN_WIDTH = 25;
-const POPUP_MIN_HEIGHT = 25;
-const POPUP_MAX_WIDTH = 800;
-const POPUP_MAX_HEIGHT = 600;
-
-// Function to load the config
-function loadConfig() {
-  return new Promise((resolve, reject) => {
-    fetch(chrome.runtime.getURL('config.js'))
-      .then(response => response.text())
-      .then(text => {
-        // Extract the config object by evaluating the script safely
-        try {
-          // Create a temporary function to evaluate the script and extract the config
-          const getConfig = new Function(text + '; return LOCAL_DROP_CONFIG;');
-          config = getConfig();
-          resolve(config);
-        } catch (error) {
-          console.error('Error parsing config.js:', error);
-          reject(error);
-        }
-      })
-      .catch(error => {
-        console.error('Error loading config.js:', error);
-        reject(error);
-      });
-  });
+// Auto-configuration system
+function checkAndGenerateConfig() {
+  try {
+    // Use a simple versioning mechanism to check if re-configuration is needed
+    chrome.storage.local.get(['configVersion', 'lastConfigUpdate'], function(data) {
+      const manifestVersion = chrome.runtime.getManifest().version;
+      const currentTime = Date.now();
+      const lastUpdate = data.lastConfigUpdate || 0;
+      
+      // Check if we need to regenerate config (on version change or first run)
+      if (data.configVersion !== manifestVersion || currentTime - lastUpdate > 30 * 24 * 60 * 60 * 1000) {
+        console.log('LocalDrop: Auto-generating configuration...');
+        
+        // Execute the config generator in the background
+        const configScript = document.createElement('script');
+        configScript.src = chrome.runtime.getURL('config-generator.js');
+        configScript.onload = function() {
+          // Update version and timestamp after config generation
+          chrome.storage.local.set({
+            configVersion: manifestVersion,
+            lastConfigUpdate: currentTime
+          });
+          
+          console.log('LocalDrop: Configuration auto-generated successfully');
+          // Reload config after generation
+          loadConfig();
+        };
+        document.head.appendChild(configScript);
+      }
+    });
+  } catch (error) {
+    console.error('LocalDrop: Error in auto-configuration', error);
+  }
 }
 
-// Load config when extension loads
-loadConfig().then(() => {
-  console.log('LocalDrop config loaded successfully');
-}).catch(error => {
-  console.error('Failed to load LocalDrop config:', error);
-});
+// Load configuration when extension loads
+function loadConfig() {
+  fetch(chrome.runtime.getURL('config.js'))
+    .then(response => response.text())
+    .then(text => {
+      try {
+        // Safely evaluate the script to extract the config
+        const getConfig = new Function(text + '; return LOCAL_DROP_CONFIG;');
+        config = getConfig();
+        console.log('LocalDrop: Config loaded successfully');
+      } catch (error) {
+        console.error('LocalDrop: Error parsing config.js', error);
+      }
+    })
+    .catch(error => {
+      console.error('LocalDrop: Error loading config.js', error);
+    });
+}
 
-// Listen for messages from popup or context menu
+// Initialize the extension
+function init() {
+  // First load the config
+  loadConfig();
+  
+  // Then check if we need to auto-generate a new one
+  checkAndGenerateConfig();
+}
+
+// Run initialization
+init();
+
+// Listen for messages requesting the config
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'openDonation') {
-    openDonationPage();
-    sendResponse({ success: true });
+  if (request.action === 'getConfig') {
+    sendResponse({ config });
+    return true;
   }
+  
+  // Force using popup mode for any attempt to open donate page
+  if (request.action === 'openDonate') {
+    // Instead of opening a new tab or window, always use the popup
+    chrome.action.openPopup();
+    sendResponse({ success: true, mode: 'popup' });
+    return true;
+  }
+  
   return true; // Required for async sendResponse
 });
 
-// Function to constrain size to Chrome's popup limits
-function constrainPopupSize(size) {
-  return {
-    width: Math.max(POPUP_MIN_WIDTH, Math.min(POPUP_MAX_WIDTH, size.width || POPUP_MIN_WIDTH)),
-    height: Math.max(POPUP_MIN_HEIGHT, Math.min(POPUP_MAX_HEIGHT, size.height || POPUP_MIN_HEIGHT))
-  };
-}
-
-// Function to open the donation page based on display mode
-function openDonationPage() {
-  // Reload config to ensure we have the latest settings
-  loadConfig().then(() => {
-    const displayMode = config?.ui?.displayMode || 'popup';
-    let sizeSettings = config?.ui?.size || { width: 400, height: 600 };
-    
-    if (displayMode === 'new-tab') {
-      // Open in a new tab with full screen
-      chrome.tabs.create({
-        url: chrome.runtime.getURL('donate.html'),
-        active: true
-      });
-      console.log('LocalDrop opened in new tab (full screen mode)');
-    } else {
-      // Constrain size to Chrome's popup limits
-      sizeSettings = constrainPopupSize(sizeSettings);
-      
-      // Open in a popup window with configured size
-      chrome.windows.create({
-        url: chrome.runtime.getURL('donate.html'),
-        type: 'popup',
-        width: sizeSettings.width,
-        height: sizeSettings.height
-      });
-      console.log('LocalDrop opened in popup mode with size:', sizeSettings);
-    }
-  }).catch(error => {
-    console.error('Error opening donation page:', error);
-    // Fallback to popup mode if there's an error loading config
-    const fallbackSize = constrainPopupSize({ width: 400, height: 600 });
-    chrome.windows.create({
-      url: chrome.runtime.getURL('donate.html'),
-      type: 'popup',
-      width: fallbackSize.width,
-      height: fallbackSize.height
-    });
-  });
-}
-
-// Optional: Add a context menu item for convenience
+// Add context menu for easy access
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: 'openLocalDrop',
     title: 'Support with donation',
     contexts: ['all']
   });
+  
+  // Set popup as default action
+  enforcePopupBehavior();
 });
 
-// Handle context menu clicks
+// Handle context menu clicks - force popup mode
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'openLocalDrop') {
-    openDonationPage();
+    // Always open as popup
+    chrome.action.openPopup();
+  }
+});
+
+// Intercept any chrome.tabs.create or chrome.windows.create attempts
+// and redirect to popup mode instead
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'createTab' || message.action === 'createWindow') {
+    console.log('LocalDrop: Intercepted tab/window creation attempt, using popup instead');
+    chrome.action.openPopup();
+    sendResponse({ success: true, mode: 'popup' });
+    return true;
+  }
+});
+
+// Function to enforce popup behavior
+function enforcePopupBehavior() {
+  // Ensure the popup is set as the default action
+  chrome.action.setPopup({ popup: 'donate.html' });
+  
+  // Handle browser or extension updates
+  chrome.runtime.onUpdateAvailable.addListener(() => {
+    // Re-enforce popup setting before update
+    chrome.action.setPopup({ popup: 'donate.html' });
+  });
+  
+  // Handle browser startup
+  chrome.runtime.onStartup.addListener(() => {
+    // Re-enforce popup setting on startup
+    chrome.action.setPopup({ popup: 'donate.html' });
+  });
+}
+
+// Handle direct extension icon clicks
+chrome.action.onClicked.addListener(() => {
+  // This shouldn't fire if popup is set correctly,
+  // but as a fallback, force open the popup
+  chrome.action.openPopup();
+});
+
+// Emergency fallback - if popup fails to open for any reason
+window.addEventListener('error', function(event) {
+  if (event.message && event.message.includes('popup')) {
+    console.warn('LocalDrop: Popup error detected, attempting recovery');
+    // Try to recover by enforcing popup behavior again
+    enforcePopupBehavior();
   }
 });

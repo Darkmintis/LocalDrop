@@ -84,7 +84,7 @@ Replace the default QR codes with your own:
 
 ## 🚧 Roadmap
 
-- Auto-detection of extension properties
+- Better Auto-detection of extension properties
 - One-click setup with no manual configuration
 - Dark mode support and automatic theme detection
 - Additional payment methods
